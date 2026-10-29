@@ -12,16 +12,24 @@ export default function Sheet({
   open,
   onClose,
   labelledBy,
+  centered = false,
   children,
 }: {
   open: boolean
   onClose: () => void
   labelledBy: string
+  /** A centred confirmation dialog instead of a bottom sheet. */
+  centered?: boolean
   children: ReactNode
 }) {
   const ref = useRef<HTMLDialogElement>(null)
+  // The native close event arrives after a re-render. When we closed the
+  // dialog ourselves (open went false, maybe because another sheet opened),
+  // don't report it back as a user dismissal.
+  const openRef = useRef(open)
 
   useLayoutEffect(() => {
+    openRef.current = open
     const dialog = ref.current
     if (!dialog) return
     if (open && !dialog.open) {
@@ -35,18 +43,29 @@ export default function Sheet({
   return (
     <dialog
       ref={ref}
+      role={centered ? 'alertdialog' : undefined}
       aria-labelledby={labelledBy}
-      onClose={onClose}
+      onClose={() => {
+        if (openRef.current) onClose()
+      }}
       onClick={(e) => {
         // The dialog element itself is only hit outside the panel, on the backdrop
         if (e.target === e.currentTarget) onClose()
       }}
-      className="sheet inset-x-0 top-auto bottom-0 mx-auto mb-0 max-h-[92dvh] w-full max-w-xl overflow-y-auto rounded-t-sheet bg-surface p-0 text-text"
+      className={
+        centered
+          ? 'dialog m-auto w-[calc(100%-40px)] max-w-sm rounded-sheet bg-surface p-0 text-text'
+          : 'sheet inset-x-0 top-auto bottom-0 mx-auto mb-0 max-h-[92dvh] w-full max-w-xl overflow-y-auto rounded-t-sheet bg-surface p-0 text-text'
+      }
     >
-      <div className="px-5 pt-2.5 pb-[max(20px,env(safe-area-inset-bottom))]">
-        <div aria-hidden="true" className="mx-auto h-1.5 w-10 rounded-full bg-control/50" />
-        {open && children}
-      </div>
+      {centered ? (
+        <div className="p-6">{open && children}</div>
+      ) : (
+        <div className="px-5 pt-2.5 pb-[max(20px,env(safe-area-inset-bottom))]">
+          <div aria-hidden="true" className="mx-auto h-1.5 w-10 rounded-full bg-control/50" />
+          {open && children}
+        </div>
+      )}
     </dialog>
   )
 }

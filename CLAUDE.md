@@ -67,6 +67,10 @@ tests/e2e/
   - Progress = done / total. At 100%, show an "All done" tick.
   - Deleting a folder moves its tasks to Unsorted.
   - Folder names are 1–40 characters after trimming.
+  - New folders default to the first colour not yet used by another folder.
+  - Folder screen lists open tasks only: "With a due date" in due order, then "No date" oldest first. Ties go by creation time, then title.
+  - Deleting needs confirmation; "Keep folder" gets focus. Completed tasks in the folder move to Unsorted too.
+- **Navigation**: hash routes, no router library (`src/lib/route.ts`): `#/`, `#/folder/unsorted`, `#/folder/<id>`. Screens open as history entries, so the phone's back gesture works. The Back button goes Home when the app was opened straight onto a folder.
 - **Completed tasks**: hidden from lists. Each folder has a "Show completed (N)" toggle.
 - **Undo**: completing or deleting a task shows a toast with Undo, for about 5 seconds. If the task's folder was deleted before Undo, the task comes back in Unsorted.
 - **Task page**: title, date, optional time, folder, notes, steps checklist with progress, created and last edited dates, delete. Changes save as you type.
@@ -74,7 +78,7 @@ tests/e2e/
   - Starts on Unsorted (or the current folder) and "No date". After each add the title clears and the folder, date and time stay, for adding a batch.
   - When chips: No date, Today, Tomorrow, the next five days ("Sat 31"), then "Other date" for the native date picker. "Add time" appears only once a date is picked.
   - Closes with the close button, Escape, or a tap on the dimmed background.
-- **Sheets** use the native `<dialog>` (`src/components/Sheet.tsx`). Open them from a tap with `flushSync` and mark the field to focus with `data-autofocus`, so the iPhone keyboard comes up.
+- **Sheets** use the native `<dialog>` (`src/components/Sheet.tsx`). Open them from a tap with `flushSync` and mark the field to focus with `data-autofocus`, so the iPhone keyboard comes up. Confirmations use the same component with `centered`.
 - **Chips** are 44px tall, not DESIGN.md's 40px, to meet the touch target rule.
 - **No reminders or notifications in v1.** The time is display only.
 - **Backup**:

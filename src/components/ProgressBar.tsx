@@ -2,15 +2,21 @@
 export default function ProgressBar({
   done,
   total,
+  tall = false,
   className = '',
 }: {
   done: number
   total: number
+  /** 12px for the folder header instead of 8px. */
+  tall?: boolean
   className?: string
 }) {
   const percent = total === 0 ? 0 : Math.round((done / total) * 100)
   return (
-    <div aria-hidden="true" className={`h-2 overflow-hidden rounded-full bg-ink/16 ${className}`}>
+    <div
+      aria-hidden="true"
+      className={`${tall ? 'h-3' : 'h-2'} overflow-hidden rounded-full bg-ink/16 ${className}`}
+    >
       <div className="h-full rounded-full bg-ink" style={{ width: `${percent}%` }} />
     </div>
   )
