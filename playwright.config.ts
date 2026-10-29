@@ -19,7 +19,8 @@ export default defineConfig({
     { name: 'mobile-safari', use: { ...devices['iPhone 15'] } },
   ],
   webServer: {
-    command: 'npm run build && npm run preview',
+    // e2e mode is a production build that also accepts /?seed (see src/main.tsx)
+    command: 'npm run build:e2e && npx vite preview --outDir dist-e2e',
     url: `http://127.0.0.1:${PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

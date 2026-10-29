@@ -49,8 +49,15 @@
   --color-butter: #ffe27a;
   --color-rose: #ffc2d6;
   --color-unsorted: #e1e2ec;
+  /* Deeper shades for the small folder dots. lilac and peach are from
+     DESIGN.md; the rest follow the same step. */
   --color-lilac-dot: #b9b0ff;
   --color-peach-dot: #ffb48f;
+  --color-mint-dot: #7fd9b8;
+  --color-sky-dot: #94c9ff;
+  --color-butter-dot: #ffd54a;
+  --color-rose-dot: #ffa6c2;
+  --color-unsorted-dot: #c4c6d6;
 
   /* Messages */
   --color-nudge: #ffe3b3;
@@ -67,6 +74,10 @@
   --color-divider: var(--divider);
   --color-control: var(--control);
   --color-link: var(--link);
+  --color-addbar: var(--addbar);
+  --color-addbar-text: var(--addbar-text);
+  --color-addbar-plus: var(--addbar-plus);
+  --color-addbar-plus-icon: var(--addbar-plus-icon);
 
   --radius-card: 22px;
   --radius-tile: 24px;
@@ -83,6 +94,10 @@
   --divider: var(--color-line);
   --control: var(--color-control-light);
   --link: var(--color-cobalt);
+  --addbar: var(--color-ink);
+  --addbar-text: #d6d5e4;
+  --addbar-plus: var(--color-butter);
+  --addbar-plus-icon: var(--color-ink);
   color-scheme: light;
 }
 
@@ -96,6 +111,10 @@
     --divider: var(--color-card-raised);
     --control: var(--color-control-dark);
     --link: var(--color-link-dark);
+    --addbar: var(--color-text-dark);
+    --addbar-text: var(--color-slate);
+    --addbar-plus: var(--color-cobalt);
+    --addbar-plus-icon: #ffffff;
     color-scheme: dark;
   }
 }
@@ -109,6 +128,10 @@
   --divider: var(--color-card-raised);
   --control: var(--color-control-dark);
   --link: var(--color-link-dark);
+  --addbar: var(--color-text-dark);
+  --addbar-text: var(--color-slate);
+  --addbar-plus: var(--color-cobalt);
+  --addbar-plus-icon: #ffffff;
   color-scheme: dark;
 }
 
@@ -132,6 +155,26 @@
   font-size: 24px;
   font-weight: 720;
   font-stretch: 82%;
+}
+
+@utility text-tile {
+  font-size: 22px;
+  font-weight: 740;
+  font-stretch: 80%;
+  line-height: 1.1;
+}
+
+@utility text-tab {
+  font-size: 22px;
+  font-weight: 760;
+  font-stretch: 78%;
+  line-height: 1;
+}
+
+@utility text-task {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.25;
 }
 
 @utility text-label {

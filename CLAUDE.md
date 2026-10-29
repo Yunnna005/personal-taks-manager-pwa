@@ -21,10 +21,12 @@ Design spec: `DESIGN.md`. Read it before building or changing any UI.
 - `npm run dev`: Vite dev server on http://localhost:3000
 - `npm run build`: typecheck (`tsc -b`), then production build to `dist/`
 - `npm run preview`: serve the production build on http://localhost:3000
+- `npm run build:e2e`: production build in `e2e` mode to `dist-e2e/`. Same as `build`, but it also accepts `?seed`. Playwright uses it
 - `npm run typecheck`: TypeScript only, no output
 - `npm run lint`: ESLint
 - `npm run format` / `npm run format:check`: Prettier (Markdown files are ignored)
 - `npm test`: Vitest unit tests, run once (`npm run test:watch` for watch mode)
+- Sample data: open http://localhost:3000/?seed in dev to replace all data with the sample set in `src/db/seed.ts`. Production builds leave this out
 - `npm run test:e2e`: Playwright (Chromium, WebKit, Pixel 7, iPhone 15). Builds and serves the app on port 3000 itself (reuses a server already running there). First time on a new machine: `npx playwright install --with-deps chromium webkit`
 
 Pinned TypeScript to ~6.0 because typescript-eslint doesn't support 7 yet.
@@ -51,7 +53,10 @@ tests/e2e/
 - **Home**: date header, then "Due soon", then folders.
   - Due soon = overdue tasks plus tasks due within `dueSoonDays`. The window includes its last day: with 3, a task due today + 3 is in, today + 4 is not.
   - Sort overdue first, then by date. On the same day, timed tasks come first in time order, then untimed ones.
-  - Show up to 5, with a "See all N" button that expands the list in place.
+  - Show up to 5, with a "See all N" button that expands the list in place. Once expanded it reads "Show fewer".
+  - The summary line is hidden when nothing is due; the empty Due soon card says "Nothing due in the next N days."
+  - The dashed "New folder" tile always ends the folder grid, not only on first run.
+  - The add bar reads "Add your first task" until any task exists (completed ones count).
 - **Urgency colours**: late = coral, today = amber, tomorrow = yellow, later = lilac.
   - A task with a time is overdue once the time passes (due 17:00 is late from 17:01). One without a time is overdue from the next day.
   - Urgency tab labels (big / small):
