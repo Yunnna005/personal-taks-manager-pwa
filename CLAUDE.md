@@ -18,7 +18,16 @@ Design spec: `DESIGN.md`. Read it before building or changing any UI.
 - No router, state library or UI kit unless we agree to add one
 
 ## Commands
-Fill these in after scaffolding: dev, build, preview, test, test:e2e, lint, typecheck.
+- `npm run dev`: Vite dev server
+- `npm run build`: typecheck (`tsc -b`), then production build to `dist/`
+- `npm run preview`: serve the production build
+- `npm run typecheck`: TypeScript only, no output
+- `npm run lint`: ESLint
+- `npm run format` / `npm run format:check`: Prettier (Markdown files are ignored)
+- `npm test`: Vitest unit tests, run once (`npm run test:watch` for watch mode)
+- `npm run test:e2e`: Playwright (Chromium, WebKit, Pixel 7, iPhone 15). Builds and serves the app on port 4173 itself. First time on a new machine: `npx playwright install --with-deps chromium webkit`
+
+Pinned TypeScript to ~6.0 because typescript-eslint doesn't support 7 yet.
 
 ## Structure
 ```

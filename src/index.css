@@ -1,0 +1,163 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/bricolage-grotesque/standard.css';
+
+/* dark: follows the system unless <html data-theme="light|dark"> overrides it */
+@custom-variant dark {
+  &:where([data-theme='dark'], [data-theme='dark'] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:not([data-theme='light'], [data-theme='light'] *)) {
+      @slot;
+    }
+  }
+}
+
+@theme {
+  --font-sans: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
+
+  /* Base, light */
+  --color-ink: #1c1b33;
+  --color-mist: #eff0f6;
+  --color-paper: #ffffff;
+  --color-cobalt: #3b3fe4;
+  --color-slate: #5a5a73;
+  --color-line: #ecedf4;
+  --color-control-light: #8f90a6;
+  --color-danger-text: #b3261e;
+
+  /* Base, dark */
+  --color-ground: #14132a;
+  --color-card: #24223f;
+  --color-card-raised: #34324f;
+  --color-text-dark: #f2f1fa;
+  --color-text-secondary-dark: #a8a7c6;
+  --color-control-dark: #7d7ba3;
+  --color-link-dark: #a3a6ff;
+
+  /* Urgency */
+  --color-late: #ff6b57;
+  --color-today: #ffb23f;
+  --color-tomorrow: #ffe27a;
+  --color-later: #dcd8ff;
+
+  /* Folders */
+  --color-lilac: #cfc9ff;
+  --color-peach: #ffc4a3;
+  --color-mint: #9ee6cc;
+  --color-sky: #b5dbff;
+  --color-butter: #ffe27a;
+  --color-rose: #ffc2d6;
+  --color-unsorted: #e1e2ec;
+  --color-lilac-dot: #b9b0ff;
+  --color-peach-dot: #ffb48f;
+
+  /* Messages */
+  --color-nudge: #ffe3b3;
+  --color-nudge-text: #4f3a12;
+  --color-error: #ffe4df;
+  --color-error-text: #5c1a12;
+
+  /* Semantic, swapped for dark mode below */
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-text: var(--text);
+  --color-text-secondary: var(--text-secondary);
+  --color-divider: var(--divider);
+  --color-control: var(--control);
+  --color-link: var(--link);
+
+  --radius-card: 22px;
+  --radius-tile: 24px;
+  --radius-sheet: 30px;
+  --radius-tab: 17px;
+}
+
+:root {
+  --bg: var(--color-mist);
+  --surface: var(--color-paper);
+  --surface-raised: var(--color-paper);
+  --text: var(--color-ink);
+  --text-secondary: var(--color-slate);
+  --divider: var(--color-line);
+  --control: var(--color-control-light);
+  --link: var(--color-cobalt);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: var(--color-ground);
+    --surface: var(--color-card);
+    --surface-raised: var(--color-card-raised);
+    --text: var(--color-text-dark);
+    --text-secondary: var(--color-text-secondary-dark);
+    --divider: var(--color-card-raised);
+    --control: var(--color-control-dark);
+    --link: var(--color-link-dark);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --bg: var(--color-ground);
+  --surface: var(--color-card);
+  --surface-raised: var(--color-card-raised);
+  --text: var(--color-text-dark);
+  --text-secondary: var(--color-text-secondary-dark);
+  --divider: var(--color-card-raised);
+  --control: var(--color-control-dark);
+  --link: var(--color-link-dark);
+  color-scheme: dark;
+}
+
+/* Type roles from DESIGN.md */
+@utility text-display {
+  font-size: 60px;
+  font-weight: 780;
+  font-stretch: 76%;
+  letter-spacing: -2px;
+  line-height: 0.95;
+}
+
+@utility text-page-title {
+  font-size: 34px;
+  font-weight: 770;
+  font-stretch: 78%;
+  line-height: 1.05;
+}
+
+@utility text-section {
+  font-size: 24px;
+  font-weight: 720;
+  font-stretch: 82%;
+}
+
+@utility text-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+@layer base {
+  body {
+    @apply bg-bg font-sans text-text antialiased;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-link);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
