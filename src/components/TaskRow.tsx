@@ -1,49 +1,43 @@
 import type { Task } from '../db/schema.ts'
 import { dueText, type Urgency } from '../lib/dates.ts'
-
-const pillBg: Record<Urgency, string> = {
-  late: 'bg-late text-ink',
-  today: 'bg-today text-ink',
-  tomorrow: 'bg-tomorrow text-ink',
-  later: 'bg-later text-ink',
-}
+import { duePill } from './folderColors.ts'
 
 /** A task inside a folder's list card. */
 export default function TaskRow({
   task,
   now,
   urgency,
+  onOpen,
   onComplete,
 }: {
   task: Task
   now: Date
   urgency: Urgency | null
+  onOpen: () => void
   onComplete: () => void
 }) {
   const due = dueText(task, now)
   const stepsDone = task.steps.filter((s) => s.done).length
 
   return (
-    <li className="flex items-center gap-2 border-b border-divider py-2 pr-2 pl-4 last:border-b-0">
-      <div className="min-w-0 flex-1 py-1">
-        <p className="text-task break-words">{task.title}</p>
+    <li className="flex items-center gap-2 border-b border-divider py-1 pr-2 pl-1 last:border-b-0">
+      <button
+        type="button"
+        onClick={onOpen}
+        className="min-h-11 min-w-0 flex-1 rounded-[14px] py-2 pl-3 text-left"
+      >
+        <span className="block text-task break-words">{task.title}</span>
         {(due || task.steps.length > 0) && (
-          <p className="mt-1 flex flex-wrap items-center gap-1.5 text-[13px] font-bold">
-            {due && (
-              <span
-                className={`rounded-full px-2 py-0.5 ${urgency ? pillBg[urgency] : 'bg-bg text-text-secondary'}`}
-              >
-                {due}
-              </span>
-            )}
+          <span className="mt-1 flex flex-wrap items-center gap-1.5 text-[13px] font-bold">
+            {due && <span className={`rounded-full px-2 py-0.5 ${duePill(urgency)}`}>{due}</span>}
             {task.steps.length > 0 && (
               <span className="rounded-full bg-bg px-2 py-0.5 text-text-secondary">
                 {stepsDone}/{task.steps.length} steps
               </span>
             )}
-          </p>
+          </span>
         )}
-      </div>
+      </button>
       <button
         type="button"
         onClick={onComplete}

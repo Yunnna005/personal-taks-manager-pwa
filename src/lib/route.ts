@@ -4,20 +4,24 @@ import { useMemo, useSyncExternalStore } from 'react'
 //   #/                   Home
 //   #/folder/unsorted    Unsorted
 //   #/folder/<id>        a folder
+//   #/task/<id>          a task
 
-export type Route = { name: 'home' } | { name: 'folder'; folderId: string | null }
+export type Route =
+  { name: 'home' } | { name: 'folder'; folderId: string | null } | { name: 'task'; taskId: string }
 
 export const HOME: Route = { name: 'home' }
 
 export function parseHash(hash: string): Route {
-  const m = /^#\/folder\/([^/]+)$/.exec(hash)
+  const m = /^#\/(folder|task)\/([^/]+)$/.exec(hash)
   if (!m) return HOME
-  const id = decodeURIComponent(m[1]!)
+  const id = decodeURIComponent(m[2]!)
+  if (m[1] === 'task') return { name: 'task', taskId: id }
   return { name: 'folder', folderId: id === 'unsorted' ? null : id }
 }
 
 export function toHash(route: Route): string {
   if (route.name === 'home') return '#/'
+  if (route.name === 'task') return `#/task/${encodeURIComponent(route.taskId)}`
   return `#/folder/${route.folderId === null ? 'unsorted' : encodeURIComponent(route.folderId)}`
 }
 

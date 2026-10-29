@@ -21,7 +21,7 @@ import type { Task } from '../db/schema.ts'
 import { getSettings } from '../db/settings.ts'
 import { completeTask, listTasksInFolder } from '../db/tasks.ts'
 import { compareDue, urgencyOf } from '../lib/dates.ts'
-import { goBack, HOME, replaceRoute } from '../lib/route.ts'
+import { goBack, HOME, navigate, replaceRoute } from '../lib/route.ts'
 import { useNow } from '../lib/useNow.ts'
 
 type OpenSheet = 'add' | 'options' | 'rename' | 'recolor' | 'delete' | null
@@ -76,6 +76,7 @@ export default function FolderScreen({ folderId }: { folderId: string | null }) 
               task={task}
               now={now}
               urgency={urgencyOf(task, now, settings.dueSoonDays)}
+              onOpen={() => navigate({ name: 'task', taskId: task.id })}
               onComplete={() => void completeTask(task.id)}
             />
           ))}

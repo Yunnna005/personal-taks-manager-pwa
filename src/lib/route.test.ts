@@ -7,6 +7,7 @@ describe('parseHash / toHash', () => {
       HOME,
       { name: 'folder', folderId: null },
       { name: 'folder', folderId: '6a1f-uuid' },
+      { name: 'task', taskId: '9c2e-uuid' },
     ] as const) {
       expect(parseHash(toHash(route))).toEqual(route)
     }
@@ -16,6 +17,7 @@ describe('parseHash / toHash', () => {
     expect(parseHash('')).toEqual(HOME)
     expect(parseHash('#/nope')).toEqual(HOME)
     expect(parseHash('#/folder/')).toEqual(HOME)
+    expect(parseHash('#/task/')).toEqual(HOME)
   })
 })
 
