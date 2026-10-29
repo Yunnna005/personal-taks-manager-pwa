@@ -26,7 +26,7 @@ Design spec: `DESIGN.md`. Read it before building or changing any UI.
 - `npm run lint`: ESLint
 - `npm run format` / `npm run format:check`: Prettier (Markdown files are ignored)
 - `npm test`: Vitest unit tests, run once (`npm run test:watch` for watch mode)
-- `npm run deploy`: production build, then `wrangler deploy` to Cloudflare Workers static assets (`wrangler.jsonc`). Needs `npx wrangler login` once on this machine. Ask before running it
+- `npm run deploy`: production build, then `wrangler deploy` to Cloudflare Workers static assets (`wrangler.jsonc`). Live at https://soon.yunnna.workers.dev (Worker `soon`, account subdomain `yunnna`). Changing either name changes the address, and installed apps keep their data per address. Needs `npx wrangler login` once on this machine. Ask before running it
 - Local Cloudflare check: `npm run build && npx wrangler dev --port 8787 --ip 127.0.0.1` serves `dist/` with the real `_headers`, no account needed
 - `npm run icons`: redraw the app icons (`scripts/make-icons.mjs`, rendered with Playwright) into `public/`. Output is committed
 - Sample data: open http://localhost:3000/?seed in dev to replace all data with the sample set in `src/db/seed.ts`. Production builds leave this out
