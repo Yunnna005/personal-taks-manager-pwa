@@ -1,6 +1,5 @@
 import { defineConfig, devices } from '@playwright/test'
-
-const PORT = 3000
+import { BASE_URL, TRIED_IN_BROWSER } from './tests/e2e/state.ts'
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -9,8 +8,9 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: 'list',
   use: {
-    baseURL: `http://127.0.0.1:${PORT}`,
+    baseURL: BASE_URL,
     trace: 'on-first-retry',
+    storageState: TRIED_IN_BROWSER,
   },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
@@ -21,7 +21,7 @@ export default defineConfig({
   webServer: {
     // e2e mode is a production build that also accepts /?seed (see src/main.tsx)
     command: 'npm run build:e2e && npx vite preview --outDir dist-e2e',
-    url: `http://127.0.0.1:${PORT}`,
+    url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },

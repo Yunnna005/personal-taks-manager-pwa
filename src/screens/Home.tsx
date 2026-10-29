@@ -10,13 +10,15 @@ import { SettingsIcon } from '../components/icons.tsx'
 import QuickAdd, { QUICK_ADD_TITLE_ID } from '../components/QuickAdd.tsx'
 import Sheet from '../components/Sheet.tsx'
 import { listFolders } from '../db/folders.ts'
-import { getSettings } from '../db/settings.ts'
+import { getSettings, setSetting } from '../db/settings.ts'
 import { countByFolder, listTasks } from '../db/tasks.ts'
 import { backupAge, dueSoonSummary, needsBackup, nothingDue } from '../lib/copy.ts'
 import { dueLabel, isOverdue, selectDueSoon, urgencyOf } from '../lib/dates.ts'
 import { navigate } from '../lib/route.ts'
 import { completeWithUndo } from '../lib/taskActions.ts'
 import { useExport } from '../lib/useExport.ts'
+import InstallHint from '../pwa/InstallHint.tsx'
+import { browserInfo, isIosSafari, isStandalone } from '../pwa/platform.ts'
 import { useNow } from '../lib/useNow.ts'
 
 const DUE_SOON_LIMIT = 5
@@ -69,6 +71,9 @@ export default function Home() {
 
         {folders && counts && settings && (
           <>
+            {!settings.installHintDismissed && isIosSafari(browserInfo()) && !isStandalone() && (
+              <InstallHint onDismiss={() => void setSetting('installHintDismissed', true)} />
+            )}
             {tasks && needsBackup(settings.lastBackupAt, tasks.length > 0, now) && (
               <section
                 aria-label="Backup"

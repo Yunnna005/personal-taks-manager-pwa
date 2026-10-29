@@ -26,6 +26,7 @@ Design spec: `DESIGN.md`. Read it before building or changing any UI.
 - `npm run lint`: ESLint
 - `npm run format` / `npm run format:check`: Prettier (Markdown files are ignored)
 - `npm test`: Vitest unit tests, run once (`npm run test:watch` for watch mode)
+- `npm run icons`: redraw the app icons (`scripts/make-icons.mjs`, rendered with Playwright) into `public/`. Output is committed
 - Sample data: open http://localhost:3000/?seed in dev to replace all data with the sample set in `src/db/seed.ts`. Production builds leave this out
 - `npm run test:e2e`: Playwright (Chromium, WebKit, Pixel 7, iPhone 15). Builds and serves the app on port 3000 itself (reuses a server already running there). First time on a new machine: `npx playwright install --with-deps chromium webkit`
 
@@ -94,10 +95,16 @@ tests/e2e/
   - Unknown fields are dropped. Anything missing or malformed rejects the whole file with a reason ("That backup is damaged: Task 3 has a bad due date. Nothing on this phone was changed."). A newer file version asks you to update the app.
   - Import always asks first ("Replace everything?", Cancel focused), since it replaces everything.
   - Export uses the share sheet where it can share files (phones), otherwise a download. `lastBackupAt` is only set when the save wasn't cancelled.
-- **Storage**: call `navigator.storage.persist()` on start-up. Settings shows whether storage is protected. (Settings reads the status now; the start-up `persist()` call comes in milestone 8.)
+- **Storage**: call `navigator.storage.persist()` on start-up (`src/pwa/storage.ts`, from `main.tsx`). Settings shows whether storage is protected.
 - **Theme**: `data-theme` on `<html>`, removed for System. Also mirrored to `localStorage` (`soon-theme`) so the inline script in `index.html` applies it before the first paint.
 - **iPhone install hint**: shown once in Safari before installing. Warns that tasks added in a Safari tab don't move to the installed app.
+  - Safari on iPhone/iPad only (not Chrome, Firefox or in-app browsers on iOS), never once installed. Shown on Home until dismissed, then `installHintDismissed` keeps it away.
+- **Service worker** (vite-plugin-pwa, `registerType: 'prompt'`): precaches the whole build, fonts included. A waiting update shows the cobalt "A new version of soon is ready / Reload" banner; an open app checks for updates hourly.
+- **Icons**: four stacked bars in the urgency colours on ink. `any` icons have rounded corners; the maskable and Apple icons are full bleed.
 - **Desktop**: on wide screens, when not running as an installed app, show DesktopLanding with the version, a QR code, install steps, and a "Try it in this browser" link. On phones, show the app straight away.
+  - "Desktop" means `(min-width: 900px) and (hover: hover) and (pointer: fine)`, so tablets get the app. "Try it in this browser" is remembered in `localStorage`.
+  - The QR code (uqr) encodes the current origin, so it is right wherever the app is hosted.
+  - e2e desktop projects start with that choice made (`tests/e2e/state.ts`); landing tests clear it.
 - **Version** comes from `package.json` at build time.
 
 ## How to work

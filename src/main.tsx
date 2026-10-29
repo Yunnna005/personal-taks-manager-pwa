@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
+import { requestPersistentStorage } from './pwa/storage.ts'
 
 // Dev and e2e builds only: /?seed replaces all data with sample data.
 // The condition is static, so production builds drop this block and seed.ts.
@@ -14,6 +15,8 @@ if (import.meta.env.DEV || import.meta.env.MODE === 'e2e') {
     history.replaceState(null, '', url)
   }
 }
+
+void requestPersistentStorage()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
