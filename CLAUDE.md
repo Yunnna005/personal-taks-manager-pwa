@@ -49,17 +49,21 @@ tests/e2e/
 
 ## Agreed behaviour
 - **Home**: date header, then "Due soon", then folders.
-  - Due soon = overdue tasks plus tasks due within `dueSoonDays`.
+  - Due soon = overdue tasks plus tasks due within `dueSoonDays`. The window includes its last day: with 3, a task due today + 3 is in, today + 4 is not.
   - Sort overdue first, then by date. On the same day, timed tasks come first in time order, then untimed ones.
   - Show up to 5, with a "See all N" button that expands the list in place.
 - **Urgency colours**: late = coral, today = amber, tomorrow = yellow, later = lilac.
-  - A task with a time is overdue once the time passes. One without a time is overdue from the next day.
+  - A task with a time is overdue once the time passes (due 17:00 is late from 17:01). One without a time is overdue from the next day.
+  - Urgency tab labels (big / small):
+    - The big line is the time if there is one, otherwise the weekday: "17:00" / "today", "Fri" / "tomorrow", "Sat" / "31 Oct".
+    - Late by whole days shows "1 day" or "2 days" / "late". Late earlier today shows the time, e.g. "09:00" / "late".
 - **Folders**: one level, no nesting. Each folder has a colour.
   - "Unsorted" is the built-in default folder and acts as the inbox. It can't be renamed or deleted.
   - Progress = done / total. At 100%, show an "All done" tick.
   - Deleting a folder moves its tasks to Unsorted.
+  - Folder names are 1–40 characters after trimming.
 - **Completed tasks**: hidden from lists. Each folder has a "Show completed (N)" toggle.
-- **Undo**: completing or deleting a task shows a toast with Undo, for about 5 seconds.
+- **Undo**: completing or deleting a task shows a toast with Undo, for about 5 seconds. If the task's folder was deleted before Undo, the task comes back in Unsorted.
 - **Task page**: title, date, optional time, folder, notes, steps checklist with progress, created and last edited dates, delete. Changes save as you type.
 - **Quick add**: opens from the bottom add bar. Pick the folder and date with chips, time is optional. The sheet stays open after adding, so several tasks can be added in a row. Inside a folder, new tasks go to that folder.
 - **No reminders or notifications in v1.** The time is display only.
