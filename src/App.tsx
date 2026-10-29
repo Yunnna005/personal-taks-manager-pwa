@@ -4,6 +4,9 @@ import ToastHost from './components/ToastHost.tsx'
 import { getSettings } from './db/settings.ts'
 import { useRoute, type Route } from './lib/route.ts'
 import { applyTheme } from './lib/theme.ts'
+import UpdateBanner from './pwa/UpdateBanner.tsx'
+import { useDesktopLanding } from './pwa/useDesktopLanding.ts'
+import DesktopLanding from './screens/DesktopLanding.tsx'
 import FolderScreen from './screens/Folder.tsx'
 import Home from './screens/Home.tsx'
 import SettingsScreen from './screens/Settings.tsx'
@@ -21,6 +24,7 @@ function Screen({ route }: { route: Route }) {
 export default function App() {
   const route = useRoute()
   const theme = useLiveQuery(getSettings)?.theme
+  const [showLanding, tryInBrowser] = useDesktopLanding()
 
   useEffect(() => {
     if (theme) applyTheme(theme)
@@ -28,8 +32,9 @@ export default function App() {
 
   return (
     <>
-      <Screen route={route} />
+      {showLanding ? <DesktopLanding onTry={tryInBrowser} /> : <Screen route={route} />}
       <ToastHost />
+      <UpdateBanner />
     </>
   )
 }

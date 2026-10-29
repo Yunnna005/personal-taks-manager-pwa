@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { TRIED_IN_BROWSER } from './state.ts'
 
 test.use({ timezoneId: 'Europe/London', locale: 'en-GB' })
 
@@ -34,7 +35,11 @@ test('a backup exported here imports into an empty phone', async ({ page, browse
   await expect(page.getByRole('region', { name: 'Backup' })).toHaveCount(0)
 
   // A fresh browser profile stands in for a new phone
-  const fresh = await browser.newContext({ timezoneId: 'Europe/London', locale: 'en-GB' })
+  const fresh = await browser.newContext({
+    timezoneId: 'Europe/London',
+    locale: 'en-GB',
+    storageState: TRIED_IN_BROWSER,
+  })
   const phone = await fresh.newPage()
   await phone.clock.setFixedTime(new Date('2026-10-29T12:00:00Z'))
   await phone.goto('/')
