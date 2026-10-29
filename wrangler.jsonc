@@ -1,0 +1,12 @@
+// Cloudflare Workers static assets: serves the built app from dist/, no server code.
+// Deploy with `npm run deploy` after `npx wrangler login`.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "soon",
+  "compatibility_date": "2026-10-29",
+  "assets": {
+    "directory": "./dist",
+    // Hash routes mean every page is index.html; unknown paths get it too
+    "not_found_handling": "single-page-application",
+  },
+}

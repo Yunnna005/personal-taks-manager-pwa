@@ -26,6 +26,8 @@ Design spec: `DESIGN.md`. Read it before building or changing any UI.
 - `npm run lint`: ESLint
 - `npm run format` / `npm run format:check`: Prettier (Markdown files are ignored)
 - `npm test`: Vitest unit tests, run once (`npm run test:watch` for watch mode)
+- `npm run deploy`: production build, then `wrangler deploy` to Cloudflare Workers static assets (`wrangler.jsonc`). Needs `npx wrangler login` once on this machine. Ask before running it
+- Local Cloudflare check: `npm run build && npx wrangler dev --port 8787 --ip 127.0.0.1` serves `dist/` with the real `_headers`, no account needed
 - `npm run icons`: redraw the app icons (`scripts/make-icons.mjs`, rendered with Playwright) into `public/`. Output is committed
 - Sample data: open http://localhost:3000/?seed in dev to replace all data with the sample set in `src/db/seed.ts`. Production builds leave this out
 - `npm run test:e2e`: Playwright (Chromium, WebKit, Pixel 7, iPhone 15). Builds and serves the app on port 3000 itself (reuses a server already running there). First time on a new machine: `npx playwright install --with-deps chromium webkit`
@@ -106,6 +108,8 @@ tests/e2e/
   - The QR code (uqr) encodes the current origin, so it is right wherever the app is hosted.
   - e2e desktop projects start with that choice made (`tests/e2e/state.ts`); landing tests clear it.
 - **Version** comes from `package.json` at build time.
+- **Hosting headers** (`public/_headers`): `/`, `index.html`, `sw.js`, `manifest.webmanifest` and `theme-init.js` are `no-cache` so updates reach installed apps; `/assets/*` is immutable. A strict CSP allows only this site (`script-src 'self'`, so no inline scripts; `style-src` keeps `'unsafe-inline'` for React style attributes).
+- **Device testing**: `docs/iphone-testing.md` is the checklist for a real iPhone.
 
 ## How to work
 - One milestone at a time, in small testable steps. Stop and summarise when a milestone is done.
