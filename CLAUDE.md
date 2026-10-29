@@ -71,8 +71,8 @@ tests/e2e/
   - Folder screen lists open tasks only: "With a due date" in due order, then "No date" oldest first. Ties go by creation time, then title.
   - Deleting needs confirmation; "Keep folder" gets focus. Completed tasks in the folder move to Unsorted too.
 - **Navigation**: hash routes, no router library (`src/lib/route.ts`): `#/`, `#/folder/unsorted`, `#/folder/<id>`, `#/task/<id>`. Screens open as history entries, so the phone's back gesture works. The Back button goes Home when the app was opened straight onto a folder.
-- **Completed tasks**: hidden from lists. Each folder has a "Show completed (N)" toggle.
-- **Undo**: completing or deleting a task shows a toast with Undo, for about 5 seconds. If the task's folder was deleted before Undo, the task comes back in Unsorted.
+- **Completed tasks**: hidden from lists. Each folder has a "Show completed (N)" toggle. It only appears when N > 0, and resets when you leave the folder. The Completed list is newest first; tapping a filled tick reopens the task (no toast).
+- **Undo**: completing or deleting a task shows a toast with Undo, for about 5 seconds. One toast at a time; a new one replaces the old. It pauses while pointed at or focused, so keyboard and screen reader users can reach Undo. Toasts live outside the screens (`src/lib/toast.ts`), so deleting on the Task page shows its toast on the screen you go back to. Screens complete and delete through `src/lib/taskActions.ts`, not the db functions directly. If the task's folder was deleted before Undo, the task comes back in Unsorted.
 - **Task page**: title, date, optional time, folder, notes, steps checklist with progress, created and last edited dates, delete. Changes save as you type.
   - Title, notes and step names save 300ms after typing stops, and straight away on blur or leaving the page. Date, time, folder, ticks and new steps save on each change. A "Saving… / Saved" status sits top right.
   - An emptied title or step name is never saved; on blur it goes back to the last saved text. Titles are one line (Enter finishes editing).

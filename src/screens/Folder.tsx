@@ -19,9 +19,10 @@ import TaskRow from '../components/TaskRow.tsx'
 import { deleteFolder, getFolder } from '../db/folders.ts'
 import type { Task } from '../db/schema.ts'
 import { getSettings } from '../db/settings.ts'
-import { completeTask, listTasksInFolder } from '../db/tasks.ts'
+import { listTasksInFolder, uncompleteTask } from '../db/tasks.ts'
 import { compareDue, urgencyOf } from '../lib/dates.ts'
 import { goBack, HOME, navigate, replaceRoute } from '../lib/route.ts'
+import { completeWithUndo } from '../lib/taskActions.ts'
 import { useNow } from '../lib/useNow.ts'
 
 type OpenSheet = 'add' | 'options' | 'rename' | 'recolor' | 'delete' | null
@@ -36,6 +37,7 @@ export default function FolderScreen({ folderId }: { folderId: string | null }) 
   const tasks = useLiveQuery(() => listTasksInFolder(folderId), [folderId])
   const settings = useLiveQuery(getSettings)
   const [sheet, setSheet] = useState<OpenSheet>(null)
+  const [showCompleted, setShowCompleted] = useState(false)
 
   useEffect(() => {
     if (folder === false) replaceRoute(HOME)
@@ -52,6 +54,10 @@ export default function FolderScreen({ folderId }: { folderId: string | null }) 
     a.createdAt.localeCompare(b.createdAt) || a.title.localeCompare(b.title)
   const dated = open.filter((t) => t.dueDate).sort((a, b) => compareDue(a, b) || byAge(a, b))
   const undated = open.filter((t) => !t.dueDate).sort(byAge)
+  // Most recently completed first
+  const completed = tasks
+    .filter((t) => t.completedAt)
+    .sort((a, b) => b.completedAt!.localeCompare(a.completedAt!) || byAge(a, b))
   // Opening from a tap with flushSync keeps the keyboard behaviour iOS needs
   const show = (s: OpenSheet) => flushSync(() => setSheet(s))
   const close = () => setSheet(null)
@@ -77,7 +83,9 @@ export default function FolderScreen({ folderId }: { folderId: string | null }) 
               now={now}
               urgency={urgencyOf(task, now, settings.dueSoonDays)}
               onOpen={() => navigate({ name: 'task', taskId: task.id })}
-              onComplete={() => void completeTask(task.id)}
+              onToggle={() =>
+                void (task.completedAt ? uncompleteTask(task.id) : completeWithUndo(task))
+              }
             />
           ))}
         </ul>
@@ -133,6 +141,17 @@ export default function FolderScreen({ folderId }: { folderId: string | null }) 
             {list('undated-heading', 'No date', undated)}
           </>
         )}
+        {done > 0 && (
+          <button
+            type="button"
+            aria-expanded={showCompleted}
+            onClick={() => setShowCompleted(!showCompleted)}
+            className="mt-5 h-11 rounded-full px-4 text-[15px] font-bold text-link"
+          >
+            {showCompleted ? `Hide completed (${done})` : `Show completed (${done})`}
+          </button>
+        )}
+        {showCompleted && list('completed-heading', 'Completed', completed)}
       </main>
 
       <AddBar

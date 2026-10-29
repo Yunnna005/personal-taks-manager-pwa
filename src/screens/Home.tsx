@@ -11,10 +11,11 @@ import QuickAdd, { QUICK_ADD_TITLE_ID } from '../components/QuickAdd.tsx'
 import Sheet from '../components/Sheet.tsx'
 import { listFolders } from '../db/folders.ts'
 import { getSettings } from '../db/settings.ts'
-import { completeTask, countByFolder, listTasks } from '../db/tasks.ts'
+import { countByFolder, listTasks } from '../db/tasks.ts'
 import { dueSoonSummary, nothingDue } from '../lib/copy.ts'
 import { dueLabel, isOverdue, selectDueSoon, urgencyOf } from '../lib/dates.ts'
 import { navigate } from '../lib/route.ts'
+import { completeWithUndo } from '../lib/taskActions.ts'
 import { useNow } from '../lib/useNow.ts'
 
 const DUE_SOON_LIMIT = 5
@@ -86,7 +87,7 @@ export default function Home() {
                         folderName={folder?.name ?? 'Unsorted'}
                         folderDot={folder ? dotBg[folder.color] : UNSORTED_DOT}
                         onOpen={() => navigate({ name: 'task', taskId: task.id })}
-                        onComplete={() => void completeTask(task.id)}
+                        onComplete={() => void completeWithUndo(task)}
                       />
                     )
                   })}
