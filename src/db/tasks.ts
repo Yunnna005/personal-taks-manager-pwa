@@ -152,6 +152,36 @@ export async function restoreTask(task: Task): Promise<void> {
   })
 }
 
+/** Completed tasks from every folder, most recently completed first. */
+export async function listCompletedTasks(): Promise<Task[]> {
+  const done = await db.tasks.filter((t) => t.completedAt !== null).toArray()
+  // Ties (same instant) go by title so the order never jumps around
+  return done.sort(
+    (a, b) => b.completedAt!.localeCompare(a.completedAt!) || a.title.localeCompare(b.title),
+  )
+}
+
+/** Deletes every completed task in one go and returns them for Undo. */
+export async function deleteCompletedTasks(): Promise<Task[]> {
+  return db.transaction('rw', db.tasks, async () => {
+    const done = await db.tasks.filter((t) => t.completedAt !== null).toArray()
+    await db.tasks.bulkDelete(done.map((t) => t.id))
+    return done
+  })
+}
+
+/** Undo for deleteCompletedTasks. Tasks whose folder has gone go to Unsorted. */
+export async function restoreTasks(tasks: Task[]): Promise<void> {
+  await db.transaction('rw', db.folders, db.tasks, async () => {
+    const folderIds = new Set((await db.folders.toArray()).map((f) => f.id))
+    await db.tasks.bulkPut(
+      tasks.map((t) =>
+        t.folderId === null || folderIds.has(t.folderId) ? t : { ...t, folderId: null },
+      ),
+    )
+  })
+}
+
 async function updateSteps(id: string, change: (steps: Step[]) => Step[]): Promise<Step[]> {
   return db.transaction('rw', db.tasks, async () => {
     const task = await getOrThrow(id)

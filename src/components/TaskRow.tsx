@@ -10,10 +10,13 @@ export default function TaskRow({
   urgency,
   onOpen,
   onToggle,
+  folder,
 }: {
   task: Task
   now: Date
   urgency: Urgency | null
+  /** Which folder the task is in, for lists that mix folders. */
+  folder?: { name: string; dot: string }
   onOpen: () => void
   /** Completes an open task, or reopens a completed one. */
   onToggle: () => void
@@ -34,8 +37,14 @@ export default function TaskRow({
         >
           {task.title}
         </span>
-        {(due || task.steps.length > 0) && (
+        {(due || folder || task.steps.length > 0) && (
           <span className="mt-1 flex flex-wrap items-center gap-1.5 text-[13px] font-bold">
+            {folder && (
+              <span className="flex items-center gap-1.5 text-text-secondary">
+                <span aria-hidden="true" className={`size-2.5 rounded-full ${folder.dot}`} />
+                {folder.name}
+              </span>
+            )}
             {due && <span className={`rounded-full px-2 py-0.5 ${duePill(urgency)}`}>{due}</span>}
             {task.steps.length > 0 && (
               <span className="rounded-full bg-bg px-2 py-0.5 text-text-secondary">

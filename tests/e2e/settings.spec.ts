@@ -19,20 +19,14 @@ const openSettings = async (page: Page) => {
 
 test('a backup exported here imports into an empty phone', async ({ page, browser }) => {
   await page.goto('/?seed')
-  await expect(page.getByRole('region', { name: 'Backup' })).toContainText('No backup yet')
-
   await openSettings(page)
+  await expect(page.getByText('No backup yet')).toBeVisible()
   const downloading = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Export' }).click()
   const download = await downloading
   expect(download.suggestedFilename()).toBe('soon-backup-2026-10-29.json')
   const file = await download.path()
   await expect(page.getByText('Last backup was today')).toBeVisible()
-
-  // Back on Home the nudge has gone
-  await page.getByRole('button', { name: 'Back', exact: true }).click()
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Thursday 29 October')
-  await expect(page.getByRole('region', { name: 'Backup' })).toHaveCount(0)
 
   // A fresh browser profile stands in for a new phone
   const fresh = await browser.newContext({

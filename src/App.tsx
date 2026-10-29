@@ -8,6 +8,7 @@ import UpdateBanner from './pwa/UpdateBanner.tsx'
 import { useDesktopLanding } from './pwa/useDesktopLanding.ts'
 import DesktopLanding from './screens/DesktopLanding.tsx'
 import FolderScreen from './screens/Folder.tsx'
+import CompletedScreen from './screens/Completed.tsx'
 import Home from './screens/Home.tsx'
 import SettingsScreen from './screens/Settings.tsx'
 import TaskScreen from './screens/Task.tsx'
@@ -18,6 +19,7 @@ function Screen({ route }: { route: Route }) {
   }
   if (route.name === 'task') return <TaskScreen key={route.taskId} taskId={route.taskId} />
   if (route.name === 'settings') return <SettingsScreen />
+  if (route.name === 'completed') return <CompletedScreen />
   return <Home />
 }
 

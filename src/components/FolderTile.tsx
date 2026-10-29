@@ -88,6 +88,30 @@ export function UnsortedRow({ open, onOpen }: { open: number; onOpen: () => void
   )
 }
 
+/** Completed tasks from every folder. Only shown while there are some. */
+export function CompletedRow({ count, onOpen }: { count: number; onOpen: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="flex w-full items-center gap-3 rounded-card bg-surface p-4 text-left"
+    >
+      <span
+        aria-hidden="true"
+        className="grid size-10 shrink-0 place-items-center rounded-[12px] bg-mint text-ink"
+      >
+        <CheckIcon className="size-5" />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-tile">Completed</span>
+        <span className="block text-[14px] font-semibold text-text-secondary">
+          {count === 1 ? '1 task done' : `${count} tasks done`}
+        </span>
+      </span>
+    </button>
+  )
+}
+
 export function NewFolderTile({ onClick }: { onClick: () => void }) {
   return (
     <li>

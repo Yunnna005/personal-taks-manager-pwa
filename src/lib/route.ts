@@ -6,17 +6,20 @@ import { useMemo, useSyncExternalStore } from 'react'
 //   #/folder/<id>        a folder
 //   #/task/<id>          a task
 //   #/settings           Settings
+//   #/completed          Completed tasks from every folder
 
 export type Route =
   | { name: 'home' }
   | { name: 'folder'; folderId: string | null }
   | { name: 'task'; taskId: string }
   | { name: 'settings' }
+  | { name: 'completed' }
 
 export const HOME: Route = { name: 'home' }
 
 export function parseHash(hash: string): Route {
   if (hash === '#/settings') return { name: 'settings' }
+  if (hash === '#/completed') return { name: 'completed' }
   const m = /^#\/(folder|task)\/([^/]+)$/.exec(hash)
   if (!m) return HOME
   const id = decodeURIComponent(m[2]!)
@@ -27,6 +30,7 @@ export function parseHash(hash: string): Route {
 export function toHash(route: Route): string {
   if (route.name === 'home') return '#/'
   if (route.name === 'settings') return '#/settings'
+  if (route.name === 'completed') return '#/completed'
   if (route.name === 'task') return `#/task/${encodeURIComponent(route.taskId)}`
   return `#/folder/${route.folderId === null ? 'unsorted' : encodeURIComponent(route.folderId)}`
 }
