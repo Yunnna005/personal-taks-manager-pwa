@@ -1,59 +1,94 @@
-import type { Folder } from '../db/schema.ts'
+import type { Folder, FolderColor } from '../db/schema.ts'
 import { unsortedSummary } from '../lib/copy.ts'
 import { tileBg } from './folderColors.ts'
 import { CheckIcon, PlusIcon } from './icons.tsx'
 import ProgressBar from './ProgressBar.tsx'
 
-export function FolderTile({
-  folder,
-  done,
-  total,
-}: {
-  folder: Folder
+type TileProps = {
+  name: string
+  color: FolderColor
   done: number
   total: number
-}) {
-  const allDone = total > 0 && done === total
+}
 
+function TileContent({ name, done, total }: Omit<TileProps, 'color'>) {
+  const allDone = total > 0 && done === total
   return (
-    <li className={`flex min-h-[150px] flex-col rounded-tile p-4 text-ink ${tileBg[folder.color]}`}>
-      <div className="flex items-start justify-between gap-2">
-        <h3 className="min-w-0 text-tile break-words">{folder.name}</h3>
+    <>
+      <span className="flex items-start justify-between gap-2">
+        <span className="min-w-0 text-tile break-words">{name}</span>
         {allDone && (
           <span className="grid size-7 shrink-0 place-items-center rounded-full bg-ink text-white">
             <CheckIcon className="size-4" />
           </span>
         )}
-      </div>
-      <div className="mt-auto pt-4">
-        <p className="text-[15px] font-bold">
+      </span>
+      <span className="mt-auto block pt-4">
+        <span className="block text-[15px] font-bold">
           {total === 0 ? 'No tasks yet' : allDone ? 'All done' : `${total - done} left`}
-        </p>
+        </span>
         {total > 0 && (
-          <p className="text-[13px] font-semibold text-ink/75">
+          <span className="block text-[13px] font-semibold text-ink/75">
             {done} of {total} done
-          </p>
+          </span>
         )}
         <ProgressBar done={done} total={total} className="mt-2" />
-      </div>
+      </span>
+    </>
+  )
+}
+
+const tileClass = 'flex min-h-[150px] w-full flex-col rounded-tile p-4 text-left text-ink'
+
+export function FolderTile({
+  folder,
+  done,
+  total,
+  onOpen,
+}: {
+  folder: Folder
+  done: number
+  total: number
+  onOpen: () => void
+}) {
+  return (
+    <li>
+      <button type="button" onClick={onOpen} className={`${tileClass} ${tileBg[folder.color]}`}>
+        <TileContent name={folder.name} done={done} total={total} />
+      </button>
     </li>
   )
 }
 
-/** The built-in inbox, shown as a full-width row above the folder grid. */
-export function UnsortedRow({ open }: { open: number }) {
+/** Non-interactive copy of a tile for the folder sheet's live preview. */
+export function TilePreview({ name, color, done, total }: TileProps) {
   return (
-    <div className="flex items-center gap-3 rounded-card bg-surface p-4">
-      <span aria-hidden="true" className="size-10 shrink-0 rounded-[12px] bg-unsorted" />
-      <div className="min-w-0">
-        <h3 className="text-tile">Unsorted</h3>
-        <p className="text-[14px] font-semibold text-text-secondary">{unsortedSummary(open)}</p>
-      </div>
+    <div aria-hidden="true" className={`${tileClass} ${tileBg[color]}`}>
+      <TileContent name={name} done={done} total={total} />
     </div>
   )
 }
 
-export function NewFolderTile({ onClick }: { onClick?: () => void }) {
+/** The built-in inbox, shown as a full-width row above the folder grid. */
+export function UnsortedRow({ open, onOpen }: { open: number; onOpen: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="flex w-full items-center gap-3 rounded-card bg-surface p-4 text-left"
+    >
+      <span aria-hidden="true" className="size-10 shrink-0 rounded-[12px] bg-unsorted" />
+      <span className="min-w-0">
+        <span className="block text-tile">Unsorted</span>
+        <span className="block text-[14px] font-semibold text-text-secondary">
+          {unsortedSummary(open)}
+        </span>
+      </span>
+    </button>
+  )
+}
+
+export function NewFolderTile({ onClick }: { onClick: () => void }) {
   return (
     <li>
       <button

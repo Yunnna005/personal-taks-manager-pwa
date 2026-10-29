@@ -1,4 +1,4 @@
-import type { FolderColor } from '../db/schema.ts'
+import { FOLDER_COLORS, type Folder, type FolderColor } from '../db/schema.ts'
 
 // Full class names so Tailwind can find them when scanning the source.
 
@@ -21,3 +21,8 @@ export const dotBg: Record<FolderColor, string> = {
 }
 
 export const UNSORTED_DOT = 'bg-unsorted-dot'
+
+/** First colour no folder uses yet, so new folders look different by default. */
+export function nextColor(folders: readonly Folder[]): FolderColor {
+  return FOLDER_COLORS.find((c) => !folders.some((f) => f.color === c)) ?? FOLDER_COLORS[0]
+}

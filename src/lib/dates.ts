@@ -165,3 +165,22 @@ export function weekdayAndDay(date: string): string {
 export function shortDate(date: string): string {
   return shortDateFormat.format(asUtcDate(date)).replace(',', '')
 }
+
+/**
+ * One-line due text for task rows: "Today 17:00", "Tomorrow", "Mon 9 Nov".
+ * Overdue tasks start with "Late · " so lateness isn't shown by colour alone.
+ */
+export function dueText(task: DueFields, now: Date): string | null {
+  if (!task.dueDate) return null
+  const days = daysBetween(toDateString(now), task.dueDate)
+  const day =
+    days === 0
+      ? 'Today'
+      : days === 1
+        ? 'Tomorrow'
+        : days === -1
+          ? 'Yesterday'
+          : shortDate(task.dueDate)
+  const text = task.dueTime ? `${day} ${task.dueTime}` : day
+  return isOverdue(task, now) ? `Late · ${text}` : text
+}

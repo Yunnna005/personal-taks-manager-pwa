@@ -3,7 +3,8 @@ import { useState } from 'react'
 import { flushSync } from 'react-dom'
 import AddBar from '../components/AddBar.tsx'
 import DueCard from '../components/DueCard.tsx'
-import { dotBg, UNSORTED_DOT } from '../components/folderColors.ts'
+import { dotBg, nextColor, UNSORTED_DOT } from '../components/folderColors.ts'
+import { FOLDER_EDITOR_TITLE_ID, FolderEditor } from '../components/FolderSheets.tsx'
 import { FolderTile, NewFolderTile, UnsortedRow } from '../components/FolderTile.tsx'
 import { SettingsIcon } from '../components/icons.tsx'
 import QuickAdd, { QUICK_ADD_TITLE_ID } from '../components/QuickAdd.tsx'
@@ -13,6 +14,7 @@ import { getSettings } from '../db/settings.ts'
 import { completeTask, countByFolder, listTasks } from '../db/tasks.ts'
 import { dueSoonSummary, nothingDue } from '../lib/copy.ts'
 import { dueLabel, isOverdue, selectDueSoon, urgencyOf } from '../lib/dates.ts'
+import { navigate } from '../lib/route.ts'
 import { useNow } from '../lib/useNow.ts'
 
 const DUE_SOON_LIMIT = 5
@@ -30,7 +32,10 @@ export default function Home() {
   const counts = useLiveQuery(countByFolder)
   const settings = useLiveQuery(getSettings)
   const [expanded, setExpanded] = useState(false)
-  const [adding, setAdding] = useState(false)
+  const [sheet, setSheet] = useState<'add' | 'folder' | null>(null)
+  // Opening from a tap with flushSync keeps the keyboard behaviour iOS needs
+  const show = (s: 'add' | 'folder') => flushSync(() => setSheet(s))
+  const close = () => setSheet(null)
 
   const loaded = tasks && folders && counts && settings
   const days = settings?.dueSoonDays ?? 0
@@ -43,7 +48,7 @@ export default function Home() {
 
   return (
     <>
-      <main className="mx-auto min-h-dvh max-w-xl px-5 pt-6 pb-32">
+      <main className="mx-auto min-h-dvh max-w-xl px-5 pt-[max(24px,env(safe-area-inset-top))] pb-32">
         <header className="flex h-11 items-center justify-between">
           <p className="text-section">soon</p>
           <button
@@ -102,16 +107,25 @@ export default function Home() {
                 Folders
               </h2>
               <div className="mt-3">
-                <UnsortedRow open={unsorted.total - unsorted.done} />
+                <UnsortedRow
+                  open={unsorted.total - unsorted.done}
+                  onOpen={() => navigate({ name: 'folder', folderId: null })}
+                />
               </div>
               <ul className="mt-2.5 grid grid-cols-2 gap-2.5">
                 {folders.map((folder) => {
                   const c = counts.get(folder.id) ?? { done: 0, total: 0 }
                   return (
-                    <FolderTile key={folder.id} folder={folder} done={c.done} total={c.total} />
+                    <FolderTile
+                      key={folder.id}
+                      folder={folder}
+                      done={c.done}
+                      total={c.total}
+                      onOpen={() => navigate({ name: 'folder', folderId: folder.id })}
+                    />
                   )
                 })}
-                <NewFolderTile />
+                <NewFolderTile onClick={() => show('folder')} />
               </ul>
             </section>
           </>
@@ -120,10 +134,13 @@ export default function Home() {
 
       <AddBar
         label={tasks?.length === 0 ? 'Add your first task' : 'Add a task'}
-        onOpen={() => flushSync(() => setAdding(true))}
+        onOpen={() => show('add')}
       />
-      <Sheet open={adding} onClose={() => setAdding(false)} labelledBy={QUICK_ADD_TITLE_ID}>
-        <QuickAdd onClose={() => setAdding(false)} />
+      <Sheet open={sheet === 'add'} onClose={close} labelledBy={QUICK_ADD_TITLE_ID}>
+        <QuickAdd onClose={close} />
+      </Sheet>
+      <Sheet open={sheet === 'folder'} onClose={close} labelledBy={FOLDER_EDITOR_TITLE_ID}>
+        <FolderEditor initialColor={nextColor(folders ?? [])} onDone={close} onCancel={close} />
       </Sheet>
     </>
   )

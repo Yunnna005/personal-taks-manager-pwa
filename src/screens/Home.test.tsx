@@ -96,8 +96,7 @@ describe('Home', () => {
     await seedSampleData(NOW)
     render(<Home />)
 
-    const tile = async (name: string) =>
-      (await screen.findByRole('heading', { level: 3, name })).closest('li')!
+    const tile = (name: string) => screen.findByRole('button', { name: new RegExp(`^${name}`) })
     expect(await tile('Work')).toHaveTextContent(/3 left\s*1 of 4 done/)
     expect(await tile('Errands')).toHaveTextContent(/All done\s*2 of 2 done/)
     expect(screen.getByText('3 tasks to sort')).toBeInTheDocument()

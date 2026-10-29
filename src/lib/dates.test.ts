@@ -3,6 +3,7 @@ import {
   compareDue,
   daysBetween,
   dueLabel,
+  dueText,
   isOverdue,
   isValidDate,
   isValidTime,
@@ -302,5 +303,26 @@ describe('weekdayAndDay / shortDate', () => {
     expect(weekdayAndDay('2026-10-31')).toBe('Sat 31')
     expect(weekdayAndDay('2026-11-01')).toBe('Sun 1')
     expect(shortDate('2026-11-09')).toBe('Mon 9 Nov')
+  })
+})
+
+describe('dueText', () => {
+  const now = at(2026, 10, 29, 12, 0)
+
+  it('names nearby days and dates further out', () => {
+    expect(dueText(task('2026-10-29', '17:00'), now)).toBe('Today 17:00')
+    expect(dueText(task('2026-10-29'), now)).toBe('Today')
+    expect(dueText(task('2026-10-30'), now)).toBe('Tomorrow')
+    expect(dueText(task('2026-11-09', '08:15'), now)).toBe('Mon 9 Nov 08:15')
+  })
+
+  it('marks overdue tasks in words', () => {
+    expect(dueText(task('2026-10-28'), now)).toBe('Late · Yesterday')
+    expect(dueText(task('2026-10-29', '09:00'), now)).toBe('Late · Today 09:00')
+    expect(dueText(task('2026-10-26'), now)).toBe('Late · Mon 26 Oct')
+  })
+
+  it('returns null without a date', () => {
+    expect(dueText(task(null), now)).toBeNull()
   })
 })
