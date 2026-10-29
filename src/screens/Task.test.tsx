@@ -25,7 +25,10 @@ async function openTask(taskId: string) {
   return screen.findByRole('textbox', { name: 'Title' })
 }
 
-const saved = () => waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Saved'))
+const saved = () =>
+  waitFor(() =>
+    expect(within(screen.getByRole('main')).getByRole('status')).toHaveTextContent('Saved'),
+  )
 
 describe('Task page', () => {
   it('shows the task with its date, folder, notes, steps and stamps', async () => {
@@ -57,7 +60,7 @@ describe('Task page', () => {
     const title = await openTask(t.id)
 
     fireEvent.change(title, { target: { value: 'Final title' } })
-    expect(screen.getByRole('status')).toHaveTextContent('Saving…')
+    expect(within(screen.getByRole('main')).getByRole('status')).toHaveTextContent('Saving…')
     await saved()
     expect((await getTask(t.id))?.title).toBe('Final title')
 

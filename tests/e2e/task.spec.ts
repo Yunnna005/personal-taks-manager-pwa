@@ -30,7 +30,7 @@ test('edits save as you type and survive a reload', async ({ page }) => {
     .filter({ has: page.getByRole('checkbox', { name: 'Wrap it' }) })
     .click()
   await expect(page.getByText('3 of 5 done')).toBeVisible()
-  await expect(page.getByRole('status')).toHaveText('Saved')
+  await expect(page.getByRole('main').getByRole('status')).toHaveText('Saved')
 
   await page.reload()
   await expect(title).toHaveValue('Buy Sam a present')

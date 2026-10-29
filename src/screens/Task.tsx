@@ -10,8 +10,6 @@ import type { Folder, Step, Task } from '../db/schema.ts'
 import { getSettings } from '../db/settings.ts'
 import {
   addStep,
-  completeTask,
-  deleteTask,
   getTask,
   removeStep,
   renameStep,
@@ -21,6 +19,7 @@ import {
 } from '../db/tasks.ts'
 import { dueText, formatStamp, isValidDate, isValidTime, urgencyOf } from '../lib/dates.ts'
 import { goBack, HOME, replaceRoute } from '../lib/route.ts'
+import { completeWithUndo, deleteWithUndo } from '../lib/taskActions.ts'
 import { useNow } from '../lib/useNow.ts'
 
 /** Typing pauses this long before title, notes and step names save. */
@@ -45,7 +44,7 @@ export default function TaskScreen({ taskId }: { taskId: string }) {
   async function remove() {
     leaving.current = true
     goBack()
-    await deleteTask(taskId)
+    await deleteWithUndo(taskId)
   }
 
   return (
@@ -218,7 +217,7 @@ function TaskEditor({
       ) : (
         <Button
           variant="strong"
-          onClick={() => void run(() => completeTask(task.id))}
+          onClick={() => void run(() => completeWithUndo(task))}
           className="mt-5 w-full"
         >
           Mark as done
