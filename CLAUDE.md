@@ -70,7 +70,7 @@ tests/e2e/
   - New folders default to the first colour not yet used by another folder.
   - Folder screen lists open tasks only: "With a due date" in due order, then "No date" oldest first. Ties go by creation time, then title.
   - Deleting needs confirmation; "Keep folder" gets focus. Completed tasks in the folder move to Unsorted too.
-- **Navigation**: hash routes, no router library (`src/lib/route.ts`): `#/`, `#/folder/unsorted`, `#/folder/<id>`, `#/task/<id>`. Screens open as history entries, so the phone's back gesture works. The Back button goes Home when the app was opened straight onto a folder.
+- **Navigation**: hash routes, no router library (`src/lib/route.ts`): `#/`, `#/folder/unsorted`, `#/folder/<id>`, `#/task/<id>`, `#/settings`. Screens open as history entries, so the phone's back gesture works. The Back button goes Home when the app was opened straight onto a folder.
 - **Completed tasks**: hidden from lists. Each folder has a "Show completed (N)" toggle. It only appears when N > 0, and resets when you leave the folder. The Completed list is newest first; tapping a filled tick reopens the task (no toast).
 - **Undo**: completing or deleting a task shows a toast with Undo, for about 5 seconds. One toast at a time; a new one replaces the old. It pauses while pointed at or focused, so keyboard and screen reader users can reach Undo. Toasts live outside the screens (`src/lib/toast.ts`), so deleting on the Task page shows its toast on the screen you go back to. Screens complete and delete through `src/lib/taskActions.ts`, not the db functions directly. If the task's folder was deleted before Undo, the task comes back in Unsorted.
 - **Task page**: title, date, optional time, folder, notes, steps checklist with progress, created and last edited dates, delete. Changes save as you type.
@@ -90,7 +90,12 @@ tests/e2e/
   - Export writes a versioned JSON file.
   - Import validates everything first, then replaces all data in one transaction, or changes nothing.
   - Home shows a nudge when the last backup is more than 14 days old (or there's never been one) and tasks exist.
-- **Storage**: call `navigator.storage.persist()` on start-up. Settings shows whether storage is protected.
+  - The file holds folders, tasks, `dueSoonDays` and `theme`. `lastBackupAt` and `installHintDismissed` stay per device and are never replaced by an import.
+  - Unknown fields are dropped. Anything missing or malformed rejects the whole file with a reason ("That backup is damaged: Task 3 has a bad due date. Nothing on this phone was changed."). A newer file version asks you to update the app.
+  - Import always asks first ("Replace everything?", Cancel focused), since it replaces everything.
+  - Export uses the share sheet where it can share files (phones), otherwise a download. `lastBackupAt` is only set when the save wasn't cancelled.
+- **Storage**: call `navigator.storage.persist()` on start-up. Settings shows whether storage is protected. (Settings reads the status now; the start-up `persist()` call comes in milestone 8.)
+- **Theme**: `data-theme` on `<html>`, removed for System. Also mirrored to `localStorage` (`soon-theme`) so the inline script in `index.html` applies it before the first paint.
 - **iPhone install hint**: shown once in Safari before installing. Warns that tasks added in a Safari tab don't move to the installed app.
 - **Desktop**: on wide screens, when not running as an installed app, show DesktopLanding with the version, a QR code, install steps, and a "Try it in this browser" link. On phones, show the app straight away.
 - **Version** comes from `package.json` at build time.

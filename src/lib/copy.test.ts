@@ -1,4 +1,12 @@
-import { dueSoonSummary, nothingDue, unsortedSummary } from './copy.ts'
+import {
+  backupAge,
+  daysAhead,
+  dueSoonSummary,
+  importedSummary,
+  needsBackup,
+  nothingDue,
+  unsortedSummary,
+} from './copy.ts'
 
 describe('dueSoonSummary', () => {
   it('matches the DESIGN.md example', () => {
@@ -34,5 +42,31 @@ describe('unsortedSummary', () => {
     expect(unsortedSummary(0)).toBe('Nothing to sort')
     expect(unsortedSummary(1)).toBe('1 task to sort')
     expect(unsortedSummary(3)).toBe('3 tasks to sort')
+  })
+})
+
+describe('backup copy', () => {
+  const now = new Date(2026, 9, 29, 12, 0)
+  const daysBack = (n: number) => new Date(2026, 9, 29 - n, 9, 0).toISOString()
+
+  it('nudges only with tasks and an old or missing backup', () => {
+    expect(needsBackup(null, false, now)).toBe(false)
+    expect(needsBackup(null, true, now)).toBe(true)
+    expect(needsBackup(daysBack(14), true, now)).toBe(false)
+    expect(needsBackup(daysBack(15), true, now)).toBe(true)
+  })
+
+  it('describes the backup age', () => {
+    expect(backupAge(null, now)).toBe('No backup yet')
+    expect(backupAge(daysBack(0), now)).toBe('Last backup was today')
+    expect(backupAge(daysBack(1), now)).toBe('Last backup was yesterday')
+    expect(backupAge(daysBack(14), now)).toBe('Last backup was 14 days ago')
+  })
+
+  it('summarises an import and the due-soon window', () => {
+    expect(importedSummary(24, 4)).toBe('Imported 24 tasks and 4 folders')
+    expect(importedSummary(1, 1)).toBe('Imported 1 task and 1 folder')
+    expect(daysAhead(1)).toBe('1 day ahead')
+    expect(daysAhead(3)).toBe('3 days ahead')
   })
 })

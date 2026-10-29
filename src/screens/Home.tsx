@@ -12,10 +12,11 @@ import Sheet from '../components/Sheet.tsx'
 import { listFolders } from '../db/folders.ts'
 import { getSettings } from '../db/settings.ts'
 import { countByFolder, listTasks } from '../db/tasks.ts'
-import { dueSoonSummary, nothingDue } from '../lib/copy.ts'
+import { backupAge, dueSoonSummary, needsBackup, nothingDue } from '../lib/copy.ts'
 import { dueLabel, isOverdue, selectDueSoon, urgencyOf } from '../lib/dates.ts'
 import { navigate } from '../lib/route.ts'
 import { completeWithUndo } from '../lib/taskActions.ts'
+import { useExport } from '../lib/useExport.ts'
 import { useNow } from '../lib/useNow.ts'
 
 const DUE_SOON_LIMIT = 5
@@ -33,6 +34,7 @@ export default function Home() {
   const counts = useLiveQuery(countByFolder)
   const settings = useLiveQuery(getSettings)
   const [expanded, setExpanded] = useState(false)
+  const exporter = useExport()
   const [sheet, setSheet] = useState<'add' | 'folder' | null>(null)
   // Opening from a tap with flushSync keeps the keyboard behaviour iOS needs
   const show = (s: 'add' | 'folder') => flushSync(() => setSheet(s))
@@ -55,6 +57,7 @@ export default function Home() {
           <button
             type="button"
             aria-label="Settings"
+            onClick={() => navigate({ name: 'settings' })}
             className="grid size-11 place-items-center rounded-full bg-surface"
           >
             <SettingsIcon className="size-6" />
@@ -66,6 +69,25 @@ export default function Home() {
 
         {folders && counts && settings && (
           <>
+            {tasks && needsBackup(settings.lastBackupAt, tasks.length > 0, now) && (
+              <section
+                aria-label="Backup"
+                className="mt-6 flex items-center gap-3 rounded-card bg-nudge p-4 text-nudge-text"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="text-[16px] font-bold">{backupAge(settings.lastBackupAt, now)}</p>
+                  <p className="text-[14px]">Your tasks live only on this phone.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={exporter.run}
+                  disabled={exporter.busy}
+                  className="h-11 shrink-0 rounded-full bg-ink px-5 text-[15px] font-bold text-white disabled:opacity-50"
+                >
+                  Export
+                </button>
+              </section>
+            )}
             <section aria-labelledby="due-soon-heading" className="mt-8">
               <h2 id="due-soon-heading" className="text-section">
                 Due soon

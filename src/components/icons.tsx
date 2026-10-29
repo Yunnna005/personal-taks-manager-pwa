@@ -84,3 +84,11 @@ export function AlertIcon({ className }: IconProps) {
     </svg>
   )
 }
+
+export function MinusIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" fill="none">
+      <path d="M5 12h14" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" />
+    </svg>
+  )
+}
