@@ -71,6 +71,11 @@ tests/e2e/
 - **Undo**: completing or deleting a task shows a toast with Undo, for about 5 seconds. If the task's folder was deleted before Undo, the task comes back in Unsorted.
 - **Task page**: title, date, optional time, folder, notes, steps checklist with progress, created and last edited dates, delete. Changes save as you type.
 - **Quick add**: opens from the bottom add bar. Pick the folder and date with chips, time is optional. The sheet stays open after adding, so several tasks can be added in a row. Inside a folder, new tasks go to that folder.
+  - Starts on Unsorted (or the current folder) and "No date". After each add the title clears and the folder, date and time stay, for adding a batch.
+  - When chips: No date, Today, Tomorrow, the next five days ("Sat 31"), then "Other date" for the native date picker. "Add time" appears only once a date is picked.
+  - Closes with the close button, Escape, or a tap on the dimmed background.
+- **Sheets** use the native `<dialog>` (`src/components/Sheet.tsx`). Open them from a tap with `flushSync` and mark the field to focus with `data-autofocus`, so the iPhone keyboard comes up.
+- **Chips** are 44px tall, not DESIGN.md's 40px, to meet the touch target rule.
 - **No reminders or notifications in v1.** The time is display only.
 - **Backup**:
   - Export writes a versioned JSON file.

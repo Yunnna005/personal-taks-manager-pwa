@@ -124,3 +124,24 @@ describe('Home', () => {
     expect(screen.getByRole('button', { name: 'Add a task' })).toBeInTheDocument()
   })
 })
+
+describe('Home quick add', () => {
+  it('opens the sheet from the add bar, adds a task and closes', async () => {
+    render(<Home />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Add your first task' }))
+
+    const dialog = screen.getByRole('dialog', { name: 'Add a task' })
+    expect(dialog).toHaveAttribute('open')
+    const input = screen.getByRole('textbox', { name: 'Task title' })
+    expect(input).toHaveFocus()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Today' }))
+    fireEvent.change(input, { target: { value: 'Pay rent' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Add task' }))
+    expect(await screen.findByText('1 task due in the next 3 days.')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+    expect(dialog).not.toHaveAttribute('open')
+    expect(screen.getByRole('button', { name: 'Add a task' })).toBeInTheDocument()
+  })
+})

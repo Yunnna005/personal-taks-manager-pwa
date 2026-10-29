@@ -7,9 +7,11 @@ import {
   isValidDate,
   isValidTime,
   selectDueSoon,
+  shortDate,
   toDateString,
   toTimeString,
   urgencyOf,
+  weekdayAndDay,
   type DueFields,
 } from './dates.ts'
 
@@ -292,5 +294,13 @@ describe('in a zone where midnight is skipped (America/Santiago)', () => {
     expect(urgencyOf(task('2026-09-05'), now, 3)).toBe('late')
     expect(urgencyOf(task('2026-09-06'), now, 3)).toBe('today')
     expect(urgencyOf(task('2026-09-07'), now, 3)).toBe('tomorrow')
+  })
+})
+
+describe('weekdayAndDay / shortDate', () => {
+  it('formats chip labels', () => {
+    expect(weekdayAndDay('2026-10-31')).toBe('Sat 31')
+    expect(weekdayAndDay('2026-11-01')).toBe('Sun 1')
+    expect(shortDate('2026-11-09')).toBe('Mon 9 Nov')
   })
 })
