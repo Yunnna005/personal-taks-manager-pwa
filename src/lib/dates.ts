@@ -184,3 +184,18 @@ export function dueText(task: DueFields, now: Date): string | null {
   const text = task.dueTime ? `${day} ${task.dueTime}` : day
   return isOverdue(task, now) ? `Late · ${text}` : text
 }
+
+const stampDateFormat = new Intl.DateTimeFormat('en-GB', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+})
+
+/** "today at 12:04", "yesterday at 09:00" or "29 Oct 2026" for created/edited stamps. */
+export function formatStamp(iso: string, now: Date): string {
+  const d = new Date(iso)
+  const days = daysBetween(toDateString(d), toDateString(now))
+  if (days === 0) return `today at ${toTimeString(d)}`
+  if (days === 1) return `yesterday at ${toTimeString(d)}`
+  return stampDateFormat.format(d)
+}

@@ -4,6 +4,7 @@ import {
   daysBetween,
   dueLabel,
   dueText,
+  formatStamp,
   isOverdue,
   isValidDate,
   isValidTime,
@@ -324,5 +325,22 @@ describe('dueText', () => {
 
   it('returns null without a date', () => {
     expect(dueText(task(null), now)).toBeNull()
+  })
+})
+
+describe('formatStamp', () => {
+  const now = at(2026, 10, 29, 12, 0)
+
+  it('uses local time for today and yesterday, then a date', () => {
+    expect(formatStamp(at(2026, 10, 29, 9, 5).toISOString(), now)).toBe('today at 09:05')
+    expect(formatStamp(at(2026, 10, 28, 23, 59).toISOString(), now)).toBe('yesterday at 23:59')
+    expect(formatStamp(at(2026, 10, 27, 8, 0).toISOString(), now)).toBe('27 Oct 2026')
+  })
+
+  it('reads a UTC stamp in local time across midnight', () => {
+    // 23:30 UTC on 28 Oct in winter is 23:30 London, so still yesterday
+    expect(formatStamp('2026-10-28T23:30:00.000Z', now)).toBe('yesterday at 23:30')
+    // 23:30 UTC on 1 Jun is 00:30 BST on 2 Jun
+    expect(formatStamp('2026-06-01T23:30:00.000Z', at(2026, 6, 2, 12))).toBe('today at 00:30')
   })
 })

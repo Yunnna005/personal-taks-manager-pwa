@@ -85,6 +85,7 @@ export default function Home() {
                         label={dueLabel(task, now)!}
                         folderName={folder?.name ?? 'Unsorted'}
                         folderDot={folder ? dotBg[folder.color] : UNSORTED_DOT}
+                        onOpen={() => navigate({ name: 'task', taskId: task.id })}
                         onComplete={() => void completeTask(task.id)}
                       />
                     )
