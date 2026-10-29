@@ -35,9 +35,13 @@ export type Task = {
 
 export type Theme = 'system' | 'light' | 'dark'
 
+/** Which view `#/` opens on: the Due soon list or the calendar. */
+export type StartView = 'list' | 'calendar'
+
 export type Settings = {
   dueSoonDays: number
   theme: Theme
+  startView: StartView
   lastBackupAt: string | null
   installHintDismissed: boolean
 }
@@ -50,6 +54,7 @@ export type SettingRow<K extends keyof Settings = keyof Settings> = {
 export const DEFAULT_SETTINGS: Settings = {
   dueSoonDays: 3,
   theme: 'system',
+  startView: 'list',
   lastBackupAt: null,
   installHintDismissed: false,
 }

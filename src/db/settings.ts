@@ -1,9 +1,10 @@
-import { db, DEFAULT_SETTINGS, type Settings, type Theme } from './schema.ts'
+import { db, DEFAULT_SETTINGS, type Settings, type StartView, type Theme } from './schema.ts'
 
 export const MIN_DUE_SOON_DAYS = 1
 export const MAX_DUE_SOON_DAYS = 7
 
 const THEMES: readonly Theme[] = ['system', 'light', 'dark']
+export const START_VIEWS: readonly StartView[] = ['list', 'calendar']
 
 function validate<K extends keyof Settings>(key: K, value: Settings[K]): Settings[K] {
   switch (key) {
@@ -16,6 +17,11 @@ function validate<K extends keyof Settings>(key: K, value: Settings[K]): Setting
     }
     case 'theme':
       if (!THEMES.includes(value as Theme)) throw new Error(`Unknown theme: ${String(value)}`)
+      break
+    case 'startView':
+      if (!START_VIEWS.includes(value as StartView)) {
+        throw new Error(`Unknown start view: ${String(value)}`)
+      }
       break
     case 'lastBackupAt':
       if (value !== null && Number.isNaN(Date.parse(value as string))) {

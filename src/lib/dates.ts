@@ -199,3 +199,101 @@ export function formatStamp(iso: string, now: Date): string {
   if (days === 1) return `yesterday at ${toTimeString(d)}`
   return stampDateFormat.format(d)
 }
+
+// --- Week calendar ----------------------------------------------------------
+
+/** The Monday of the week `date` falls in (weeks start on Monday, as in the UK). */
+export function startOfWeek(date: string): string {
+  return addDays(date, -((asUtcDate(date).getUTCDay() + 6) % 7))
+}
+
+/** The seven dates of the week starting `monday`. */
+export function weekDates(monday: string): string[] {
+  return Array.from({ length: 7 }, (_, i) => addDays(monday, i))
+}
+
+const dayMonthYearFormat = new Intl.DateTimeFormat('en-GB', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+  timeZone: 'UTC',
+})
+
+/**
+ * "26 Oct – 1 Nov" for the week starting `monday`. The year is added when the
+ * week isn't all in the current year: "28 Dec 2026 – 3 Jan 2027".
+ */
+export function weekLabel(monday: string, now: Date): string {
+  const sunday = addDays(monday, 6)
+  const year = String(now.getFullYear())
+  if (monday.startsWith(year) && sunday.startsWith(year)) {
+    return `${dayMonthFormat.format(asUtcDate(monday))} – ${dayMonthFormat.format(asUtcDate(sunday))}`
+  }
+  return `${dayMonthYearFormat.format(asUtcDate(monday))} – ${dayMonthYearFormat.format(asUtcDate(sunday))}`
+}
+
+type CalendarTask = DueFields & { title: string; createdAt: string }
+
+export type CalendarDay<T> = {
+  date: string
+  /** Tasks with a time, in time order. */
+  timed: T[]
+  /** Tasks without a time, oldest first. */
+  untimed: T[]
+}
+
+function compareCalendar(a: CalendarTask, b: CalendarTask): number {
+  return (
+    compareDue(a, b) || a.createdAt.localeCompare(b.createdAt) || a.title.localeCompare(b.title)
+  )
+}
+
+/** Open tasks for each of `dates`, split into timed and untimed. Completed tasks are left out. */
+export function tasksByDay<T extends CalendarTask>(
+  tasks: readonly T[],
+  dates: readonly string[],
+): CalendarDay<T>[] {
+  const days = dates.map((date) => ({ date, timed: [] as T[], untimed: [] as T[] }))
+  const byDate = new Map(days.map((d) => [d.date, d]))
+  for (const task of [...tasks].sort(compareCalendar)) {
+    const day = !task.completedAt && task.dueDate ? byDate.get(task.dueDate) : undefined
+    if (day) (task.dueTime ? day.timed : day.untimed).push(task)
+  }
+  return days
+}
+
+/** "Thursday 29 October", for calendar headings read by screen readers. */
+export function longDay(date: string): string {
+  return longDayFormat.format(asUtcDate(date)).replace(',', '')
+}
+
+const longDayFormat = new Intl.DateTimeFormat('en-GB', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+  timeZone: 'UTC',
+})
+
+/** "Thu" and "29" for a calendar column header. */
+export function dayHeader(date: string): { weekday: string; day: string; month: string } {
+  const d = asUtcDate(date)
+  return {
+    weekday: weekdayFormat.format(d),
+    day: String(d.getUTCDate()),
+    month: dayMonthFormat.formatToParts(d).find((p) => p.type === 'month')!.value,
+  }
+}
+
+/**
+ * The time on a calendar entry: "17:00", or "Late · 09:00" once it has passed,
+ * so lateness isn't shown by colour alone. Null without a time.
+ */
+export function calendarTime(task: DueFields, now: Date): string | null {
+  if (!task.dueTime) return null
+  return isOverdue(task, now) ? `Late · ${task.dueTime}` : task.dueTime
+}
+
+/** Minutes since midnight for "HH:mm". */
+export function minutesOf(time: string): number {
+  return Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5))
+}

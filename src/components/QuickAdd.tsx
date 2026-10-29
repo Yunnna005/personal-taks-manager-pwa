@@ -16,22 +16,35 @@ const DAY_CHIPS = [0, 1]
 /** null = no date, a number = days from today, a string = a date picked from the calendar. */
 type When = number | string | null
 
+/** Today and tomorrow select their chip; other dates show as a picked date. */
+function whenFor(date: string | null, today: string): When {
+  if (date === null) return null
+  const offset = daysBetween(today, date)
+  return DAY_CHIPS.includes(offset) ? offset : date
+}
+
 export const QUICK_ADD_TITLE_ID = 'quick-add-title'
 
 export default function QuickAdd({
   defaultFolderId = null,
+  defaultDate = null,
+  defaultTime = null,
   onClose,
 }: {
   defaultFolderId?: string | null
+  /** Preselects a day, as when adding from a calendar day. */
+  defaultDate?: string | null
+  /** Presets the time, as when tapping an hour on the calendar. Needs defaultDate. */
+  defaultTime?: string | null
   onClose: () => void
 }) {
   const today = toDateString(useNow())
   const folders = useLiveQuery(listFolders)
   const [title, setTitle] = useState('')
   const [folderId, setFolderId] = useState<string | null>(defaultFolderId)
-  const [when, setWhen] = useState<When>(null)
-  const [showTime, setShowTime] = useState(false)
-  const [time, setTime] = useState('')
+  const [when, setWhen] = useState<When>(() => whenFor(defaultDate, today))
+  const [showTime, setShowTime] = useState(defaultDate !== null && defaultTime !== null)
+  const [time, setTime] = useState(defaultDate !== null ? (defaultTime ?? '') : '')
   const [lastAdded, setLastAdded] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const titleRef = useRef<HTMLInputElement>(null)
@@ -60,8 +73,7 @@ export default function QuickAdd({
 
   function pickDate(value: string) {
     if (!isValidDate(value)) return
-    const offset = daysBetween(today, value)
-    setWhen(DAY_CHIPS.includes(offset) ? offset : value)
+    setWhen(whenFor(value, today))
   }
 
   function openPicker(input: HTMLInputElement | null) {

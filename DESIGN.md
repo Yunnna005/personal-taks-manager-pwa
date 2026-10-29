@@ -98,6 +98,8 @@ Sentence case everywhere. No all-caps labels.
 - **Folder header**: the folder colour fills the top of the screen, with round 44px back and options buttons, the folder name in display type, and a big progress bar.
 - **Sheet**: white, slides up, 30px top corners, grabber handle, dimmed background.
 - **Chips**: 40px round. Selected chips are ink with white text. Date chips use butter when selected. "Add time" has a dashed border.
+- **Home header**: "soon" wordmark, then a white pill with List and Calendar icon buttons (44px, the active one ink with a white icon), then the round Settings button.
+- **Week grid**: day headers (weekday, day number in display type, month), today's in an amber 17px-radius tab, earlier days in slate. A 52px hours column ("09:00", 12px bold slate). Hour lines and column lines in the divider colour. Task entries are 12px-radius blocks in the folder colour (Unsorted grey) with ink text: time on top, title below. Late gets a coral pill. The current time is a 2px coral line with a dot.
 - **Toasts**: ink pill with white text and a butter "Undo" pill. Positioned above the add bar.
 - **Buttons**: primary is cobalt ("Add task"), strong is ink ("Mark as done", "Export", "Create folder"), secondary is a 1.5px ink outline. Destructive is a coral fill with ink text ("Delete folder").
 
@@ -106,7 +108,7 @@ Sentence case everywhere. No all-caps labels.
 2. **Home, first run**: install hint card (sky colour, iPhone only), dashed empty Due soon, Unsorted tile and a dashed "New folder" tile, add bar reading "Add your first task".
 3. **Folder**: colour header with progress, "With a due date" and "No date" lists in white cards, "Show completed (N)" toggle, add bar.
 4. **Task**: back button and "Saved" indicator, editable display title, date and folder chips, "Mark as done" button, a card with date, time and folder, notes card, steps card with progress and "Add step", created and edited dates, "Delete task".
-5. **Settings**: due-soon stepper ("3 days ahead"), theme picker (System / Light / Dark tiles), backup card (amber when old) with Export and Import, a storage status row, and the version.
+5. **Settings**: due-soon stepper ("3 days ahead"), "First page" picker (List / Calendar tiles), theme picker, an Updates card ("Check for updates", which becomes an ink "Reload" when a new version is ready) (System / Light / Dark tiles), backup card (amber when old) with Export and Import, a storage status row, and the version.
 6. **Quick add sheet**: confirmation chip for the last added task, big title input, folder chips, "When" chips plus "Add time", cobalt "Add task" button.
 7. **New / rename folder sheet**: name input, six colour swatches, live tile preview, Cancel and Create folder buttons.
 8. **Folder options sheet**: Rename folder, Change colour, Delete folder (coral tint), Cancel.
@@ -121,6 +123,8 @@ Sentence case everywhere. No all-caps labels.
     - Three short notes: works offline, private by default, keep a backup.
     - Footer with version and update date.
     - A "Try it in this browser" link.
+
+11. **Calendar** (Home's second view): header with the view switch, the week ("26 Oct – 1 Nov") with previous and next buttons, "This week", then the week grid: day headers, the Any time row, hour rows. Add bar.
 
 ## Copy
 - "4 tasks due in the next 3 days. One is already late."

@@ -50,6 +50,18 @@ test('opens offline once the service worker has installed', async ({
   await context.setOffline(false)
 })
 
+test('Settings can check for a new version', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'service workers are only testable in Chromium here')
+
+  await page.goto('/#/settings')
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready
+  })
+  await page.getByRole('button', { name: 'Check for updates' }).click()
+  // Nothing new has been deployed between page load and the check
+  await expect(page.getByText('You have the latest version')).toBeVisible()
+})
+
 test('asks for persistent storage on start-up', async ({ page, browserName }) => {
   test.skip(browserName !== 'chromium', 'persist() is answered without a prompt in Chromium')
   await page.goto('/')

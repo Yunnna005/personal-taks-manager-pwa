@@ -2,10 +2,18 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import Button from '../components/Button.tsx'
-import { AlertIcon, BackIcon, CheckIcon, MinusIcon, PlusIcon } from '../components/icons.tsx'
+import {
+  AlertIcon,
+  BackIcon,
+  CalendarIcon,
+  CheckIcon,
+  ListIcon,
+  MinusIcon,
+  PlusIcon,
+} from '../components/icons.tsx'
 import Sheet from '../components/Sheet.tsx'
 import type { BackupFile } from '../db/backup.ts'
-import type { Theme } from '../db/schema.ts'
+import type { StartView, Theme } from '../db/schema.ts'
 import { getSettings, MAX_DUE_SOON_DAYS, MIN_DUE_SOON_DAYS, setSetting } from '../db/settings.ts'
 import { listTasks } from '../db/tasks.ts'
 import { readBackupFile, restoreBackup } from '../lib/backupActions.ts'
@@ -13,6 +21,12 @@ import { backupAge, daysAhead, importedSummary, needsBackup } from '../lib/copy.
 import { goBack } from '../lib/route.ts'
 import { useExport } from '../lib/useExport.ts'
 import { useNow } from '../lib/useNow.ts'
+import {
+  checkForUpdate,
+  reloadToUpdate,
+  useUpdateStatus,
+  type UpdateStatus,
+} from '../pwa/updates.ts'
 
 const CONFIRM_TITLE_ID = 'import-confirm-title'
 
@@ -21,6 +35,11 @@ const THEMES: { value: Theme; label: string; halves: string[] }[] = [
   { value: 'system', label: 'System', halves: ['bg-mist', 'bg-ground'] },
   { value: 'light', label: 'Light', halves: ['bg-mist'] },
   { value: 'dark', label: 'Dark', halves: ['bg-ground'] },
+]
+
+const START_VIEWS: { value: StartView; label: string; Icon: typeof ListIcon }[] = [
+  { value: 'list', label: 'List', Icon: ListIcon },
+  { value: 'calendar', label: 'Calendar', Icon: CalendarIcon },
 ]
 
 type StorageStatus = 'checking' | 'protected' | 'unprotected' | 'unsupported'
@@ -33,6 +52,28 @@ const STORAGE_TEXT: Record<StorageStatus, string> = {
   protected: 'Protected',
   unprotected: 'Not protected yet',
   unsupported: 'Not available in this browser',
+}
+
+const UPDATE_TEXT: Record<UpdateStatus, { title: string; detail: string }> = {
+  idle: {
+    title: 'soon updates itself',
+    detail:
+      'It looks for a new version when you open it and shows a Reload banner when one is ready.',
+  },
+  checking: { title: 'Checking for updates…', detail: 'This takes a moment.' },
+  latest: { title: 'You have the latest version', detail: 'Nothing new to install right now.' },
+  ready: {
+    title: 'A new version is ready',
+    detail: 'Reload to start using it. Your tasks stay as they are.',
+  },
+  failed: {
+    title: "Couldn't check for updates",
+    detail: 'Check your internet connection and try again.',
+  },
+  unsupported: {
+    title: "This browser can't check for updates",
+    detail: 'Reload the page to get the newest version.',
+  },
 }
 
 type Message = { kind: 'success' | 'error'; text: string } | null
@@ -48,6 +89,7 @@ export default function SettingsScreen() {
   const settings = useLiveQuery(getSettings)
   const taskCount = useLiveQuery(async () => (await listTasks()).length)
   const exporter = useExport()
+  const update = useUpdateStatus()
   const [storage, setStorage] = useState<StorageStatus>(() =>
     canCheckStorage() ? 'checking' : 'unsupported',
   )
@@ -93,6 +135,7 @@ export default function SettingsScreen() {
 
   const card = 'rounded-card bg-surface p-4'
   const round = 'grid size-11 place-items-center rounded-full bg-bg disabled:opacity-40'
+  const radioCard = `flex cursor-pointer flex-col gap-2 p-3 ${card} has-checked:ring-[3px] has-checked:ring-ink has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-link dark:has-checked:ring-text-dark`
 
   return (
     <main className="mx-auto max-w-xl px-5 pt-[max(24px,env(safe-area-inset-top))] pb-16">
@@ -140,13 +183,43 @@ export default function SettingsScreen() {
 
       <section className="mt-8">
         <fieldset>
+          <legend className="text-section">First page</legend>
+          <p className="mt-1 text-[15px] text-text-secondary">
+            What soon opens on. You can switch at the top of the page any time.
+          </p>
+          <div className="mt-3 grid grid-cols-2 gap-2.5">
+            {START_VIEWS.map(({ value, label, Icon }) => (
+              <label key={value} className={radioCard}>
+                <input
+                  type="radio"
+                  name="start-view"
+                  value={value}
+                  checked={settings.startView === value}
+                  onChange={() => void setSetting('startView', value)}
+                  className="sr-only"
+                />
+                <span
+                  aria-hidden="true"
+                  className="grid h-14 place-items-center rounded-[12px] bg-bg"
+                >
+                  <Icon className="size-7" />
+                </span>
+                <span className="flex items-center justify-between text-[15px] font-bold">
+                  {label}
+                  {settings.startView === value && <CheckIcon className="size-4" />}
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      </section>
+
+      <section className="mt-8">
+        <fieldset>
           <legend className="text-section">Theme</legend>
           <div className="mt-3 grid grid-cols-3 gap-2.5">
             {THEMES.map((t) => (
-              <label
-                key={t.value}
-                className={`flex cursor-pointer flex-col gap-2 p-3 ${card} has-checked:ring-[3px] has-checked:ring-ink has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-link dark:has-checked:ring-text-dark`}
-              >
+              <label key={t.value} className={radioCard}>
                 <input
                   type="radio"
                   name="theme"
@@ -231,6 +304,36 @@ export default function SettingsScreen() {
               </span>
               {message.text}
             </p>
+          )}
+        </div>
+      </section>
+
+      <section aria-labelledby="updates-heading" className="mt-8">
+        <h2 id="updates-heading" className="text-section">
+          Updates
+        </h2>
+        <div className={`mt-3 ${card}`}>
+          <div aria-live="polite">
+            <p className="text-[17px] font-bold">{UPDATE_TEXT[update].title}</p>
+            <p className="mt-1 text-[15px] text-text-secondary">{UPDATE_TEXT[update].detail}</p>
+          </div>
+          {update === 'ready' || update === 'unsupported' ? (
+            <Button
+              variant={update === 'ready' ? 'strong' : 'secondary'}
+              onClick={reloadToUpdate}
+              className="mt-4 w-full"
+            >
+              Reload
+            </Button>
+          ) : (
+            <Button
+              variant="secondary"
+              disabled={update === 'checking'}
+              onClick={() => void checkForUpdate()}
+              className="mt-4 w-full"
+            >
+              Check for updates
+            </Button>
           )}
         </div>
       </section>

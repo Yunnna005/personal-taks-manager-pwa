@@ -5,6 +5,9 @@ describe('parseHash / toHash', () => {
   it('round-trips each route', () => {
     for (const route of [
       HOME,
+      { name: 'list' },
+      { name: 'calendar' },
+      { name: 'calendar', week: '2026-10-26' },
       { name: 'folder', folderId: null },
       { name: 'folder', folderId: '6a1f-uuid' },
       { name: 'task', taskId: '9c2e-uuid' },

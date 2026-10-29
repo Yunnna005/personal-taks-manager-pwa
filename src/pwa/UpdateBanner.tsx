@@ -1,20 +1,8 @@
-import { useRegisterSW } from 'virtual:pwa-register/react'
+import { reloadToUpdate, useUpdateStatus } from './updates.ts'
 
-/** How often an open app checks for a new version. */
-const UPDATE_CHECK_MS = 60 * 60 * 1000
-
-/** Registers the service worker and offers a reload when a new version is waiting. */
+/** Offers a reload when a new version is waiting (src/pwa/updates.ts finds it). */
 export default function UpdateBanner() {
-  const {
-    needRefresh: [needRefresh],
-    updateServiceWorker,
-  } = useRegisterSW({
-    onRegisteredSW(_url, registration) {
-      if (registration) setInterval(() => void registration.update(), UPDATE_CHECK_MS)
-    },
-  })
-
-  return <UpdateBannerView show={needRefresh} onReload={() => void updateServiceWorker(true)} />
+  return <UpdateBannerView show={useUpdateStatus() === 'ready'} onReload={reloadToUpdate} />
 }
 
 export function UpdateBannerView({ show, onReload }: { show: boolean; onReload: () => void }) {

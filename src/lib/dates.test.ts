@@ -1,6 +1,8 @@
 import {
   addDays,
+  calendarTime,
   compareDue,
+  dayHeader,
   daysBetween,
   dueLabel,
   dueText,
@@ -8,12 +10,18 @@ import {
   isOverdue,
   isValidDate,
   isValidTime,
+  longDay,
+  minutesOf,
   selectDueSoon,
   shortDate,
+  startOfWeek,
+  tasksByDay,
   toDateString,
   toTimeString,
   urgencyOf,
+  weekDates,
   weekdayAndDay,
+  weekLabel,
   type DueFields,
 } from './dates.ts'
 
@@ -342,5 +350,104 @@ describe('formatStamp', () => {
     expect(formatStamp('2026-10-28T23:30:00.000Z', now)).toBe('yesterday at 23:30')
     // 23:30 UTC on 1 Jun is 00:30 BST on 2 Jun
     expect(formatStamp('2026-06-01T23:30:00.000Z', at(2026, 6, 2, 12))).toBe('today at 00:30')
+  })
+})
+
+describe('startOfWeek / weekDates', () => {
+  it('starts weeks on Monday', () => {
+    expect(startOfWeek('2026-10-26')).toBe('2026-10-26') // Monday
+    expect(startOfWeek('2026-10-29')).toBe('2026-10-26') // Thursday
+    expect(startOfWeek('2026-11-01')).toBe('2026-10-26') // Sunday
+    expect(startOfWeek('2027-01-01')).toBe('2026-12-28') // across the year
+  })
+
+  it('lists the seven days, across a clock change', () => {
+    // UK clocks went back on Sunday 25 October 2026
+    expect(weekDates('2026-10-19')).toEqual([
+      '2026-10-19',
+      '2026-10-20',
+      '2026-10-21',
+      '2026-10-22',
+      '2026-10-23',
+      '2026-10-24',
+      '2026-10-25',
+    ])
+  })
+})
+
+describe('weekLabel', () => {
+  const now = at(2026, 10, 29)
+  it('shows the range, with years only when the week leaves this year', () => {
+    expect(weekLabel('2026-10-26', now)).toBe('26 Oct – 1 Nov')
+    expect(weekLabel('2026-12-28', now)).toBe('28 Dec 2026 – 3 Jan 2027')
+    expect(weekLabel('2027-03-01', now)).toBe('1 Mar 2027 – 7 Mar 2027')
+  })
+})
+
+describe('tasksByDay', () => {
+  let n = 0
+  const t = (
+    title: string,
+    dueDate: string | null,
+    dueTime: string | null = null,
+    done = false,
+  ) => ({
+    ...task(dueDate, dueTime, done),
+    title,
+    createdAt: `2026-10-01T00:00:${String(n++).padStart(2, '0')}.000Z`,
+  })
+  const titles = (list: { title: string }[]) => list.map((x) => x.title)
+
+  it('splits each day into timed tasks in time order and untimed oldest first', () => {
+    const [day] = tasksByDay(
+      [
+        t('Untimed A', '2026-10-29'),
+        t('Evening', '2026-10-29', '18:00'),
+        t('Untimed B', '2026-10-29'),
+        t('Morning', '2026-10-29', '09:00'),
+      ],
+      ['2026-10-29'],
+    )
+    expect(titles(day!.timed)).toEqual(['Morning', 'Evening'])
+    expect(titles(day!.untimed)).toEqual(['Untimed A', 'Untimed B'])
+  })
+
+  it('leaves out completed, undated and out-of-range tasks, and keeps empty days', () => {
+    const days = tasksByDay(
+      [
+        t('Done', '2026-10-29', null, true),
+        t('No date', null),
+        t('Next week', '2026-11-02'),
+        t('Friday', '2026-10-30'),
+      ],
+      ['2026-10-29', '2026-10-30'],
+    )
+    expect(days.map((d) => [d.date, titles([...d.timed, ...d.untimed])])).toEqual([
+      ['2026-10-29', []],
+      ['2026-10-30', ['Friday']],
+    ])
+  })
+})
+
+describe('dayHeader / longDay', () => {
+  it('names the day', () => {
+    expect(dayHeader('2026-10-29')).toEqual({ weekday: 'Thu', day: '29', month: 'Oct' })
+    expect(longDay('2026-10-29')).toBe('Thursday 29 October')
+  })
+})
+
+describe('calendarTime / minutesOf', () => {
+  it('shows the time, with Late once it has passed', () => {
+    const now = at(2026, 10, 29, 12, 0)
+    expect(calendarTime(task('2026-10-29', '17:00'), now)).toBe('17:00')
+    expect(calendarTime(task('2026-10-29', '09:00'), now)).toBe('Late · 09:00')
+    expect(calendarTime(task('2026-10-28', '17:00'), now)).toBe('Late · 17:00')
+    expect(calendarTime(task('2026-10-29'), now)).toBeNull()
+  })
+
+  it('counts minutes from midnight', () => {
+    expect(minutesOf('00:00')).toBe(0)
+    expect(minutesOf('09:30')).toBe(570)
+    expect(minutesOf('23:59')).toBe(1439)
   })
 })
