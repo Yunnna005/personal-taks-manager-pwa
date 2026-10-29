@@ -1,10 +1,13 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
+import { flushSync } from 'react-dom'
 import AddBar from '../components/AddBar.tsx'
 import DueCard from '../components/DueCard.tsx'
 import { dotBg, UNSORTED_DOT } from '../components/folderColors.ts'
 import { FolderTile, NewFolderTile, UnsortedRow } from '../components/FolderTile.tsx'
 import { SettingsIcon } from '../components/icons.tsx'
+import QuickAdd, { QUICK_ADD_TITLE_ID } from '../components/QuickAdd.tsx'
+import Sheet from '../components/Sheet.tsx'
 import { listFolders } from '../db/folders.ts'
 import { getSettings } from '../db/settings.ts'
 import { completeTask, countByFolder, listTasks } from '../db/tasks.ts'
@@ -27,6 +30,7 @@ export default function Home() {
   const counts = useLiveQuery(countByFolder)
   const settings = useLiveQuery(getSettings)
   const [expanded, setExpanded] = useState(false)
+  const [adding, setAdding] = useState(false)
 
   const loaded = tasks && folders && counts && settings
   const days = settings?.dueSoonDays ?? 0
@@ -114,7 +118,13 @@ export default function Home() {
         )}
       </main>
 
-      <AddBar label={tasks?.length === 0 ? 'Add your first task' : 'Add a task'} />
+      <AddBar
+        label={tasks?.length === 0 ? 'Add your first task' : 'Add a task'}
+        onOpen={() => flushSync(() => setAdding(true))}
+      />
+      <Sheet open={adding} onClose={() => setAdding(false)} labelledBy={QUICK_ADD_TITLE_ID}>
+        <QuickAdd onClose={() => setAdding(false)} />
+      </Sheet>
     </>
   )
 }

@@ -147,3 +147,21 @@ export function dueLabel(task: DueFields, now: Date): { big: string; small: stri
   if (days === 1) return { big, small: 'tomorrow' }
   return { big, small: dayMonthFormat.format(asUtcDate(task.dueDate)) }
 }
+
+const shortDateFormat = new Intl.DateTimeFormat('en-GB', {
+  weekday: 'short',
+  day: 'numeric',
+  month: 'short',
+  timeZone: 'UTC',
+})
+
+/** "Sat 31" for date chips. */
+export function weekdayAndDay(date: string): string {
+  const d = asUtcDate(date)
+  return `${weekdayFormat.format(d)} ${d.getUTCDate()}`
+}
+
+/** "Mon 9 Nov" for a date picked outside the chips. */
+export function shortDate(date: string): string {
+  return shortDateFormat.format(asUtcDate(date)).replace(',', '')
+}
