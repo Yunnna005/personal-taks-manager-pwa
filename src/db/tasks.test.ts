@@ -5,13 +5,16 @@ import {
   addTask,
   completeTask,
   countByFolder,
+  deleteCompletedTasks,
   deleteTask,
   getTask,
+  listCompletedTasks,
   listTasks,
   listTasksInFolder,
   removeStep,
   renameStep,
   restoreTask,
+  restoreTasks,
   toggleStep,
   uncompleteTask,
   updateTask,
@@ -205,5 +208,47 @@ describe('listing and counts', () => {
     const counts = await countByFolder()
     expect(counts.get(work.id)).toEqual({ done: 1, total: 2 })
     expect(counts.get('')).toEqual({ done: 0, total: 1 })
+  })
+})
+
+describe('completed tasks', () => {
+  it('lists completed tasks from every folder, newest first', async () => {
+    const work = await createFolder('Work', 'sky')
+    const a = await addTask({ title: 'a', folderId: work.id })
+    const b = await addTask({ title: 'b' })
+    await addTask({ title: 'open' })
+    await completeTask(a.id)
+    vi.setSystemTime(new Date('2026-10-29T10:00:00.000Z'))
+    await completeTask(b.id)
+
+    expect((await listCompletedTasks()).map((t) => t.title)).toEqual(['b', 'a'])
+  })
+
+  it('deletes them all at once and restores them exactly', async () => {
+    const work = await createFolder('Work', 'sky')
+    const a = await addTask({ title: 'a', folderId: work.id })
+    const b = await addTask({ title: 'b' })
+    const open = await addTask({ title: 'open' })
+    await completeTask(a.id)
+    await completeTask(b.id)
+    const before = await listCompletedTasks()
+
+    const deleted = await deleteCompletedTasks()
+    expect(deleted).toHaveLength(2)
+    expect((await listTasks()).map((t) => t.id)).toEqual([open.id])
+
+    await restoreTasks(deleted)
+    expect(new Set(await listCompletedTasks())).toEqual(new Set(before))
+  })
+
+  it('restores into Unsorted when the folder has gone', async () => {
+    const work = await createFolder('Work', 'sky')
+    const a = await addTask({ title: 'a', folderId: work.id })
+    await completeTask(a.id)
+    const deleted = await deleteCompletedTasks()
+    await deleteFolder(work.id)
+
+    await restoreTasks(deleted)
+    expect((await getTask(a.id))?.folderId).toBeNull()
   })
 })

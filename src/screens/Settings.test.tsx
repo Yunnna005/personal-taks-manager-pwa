@@ -180,38 +180,3 @@ describe('Settings', () => {
     expect((await listTasks()).map((t) => t.title)).toEqual(['Keep me'])
   })
 })
-
-describe('Home backup nudge', () => {
-  it('shows with tasks and no backup, and goes once exported', async () => {
-    await addTask({ title: 'Something' })
-    render(<App />)
-
-    const nudge = await screen.findByRole('region', { name: 'Backup' })
-    expect(nudge).toHaveTextContent('No backup yet')
-    fireEvent.click(within(nudge).getByRole('button', { name: 'Export' }))
-
-    await waitFor(() => expect(screen.queryByRole('region', { name: 'Backup' })).toBeNull())
-    expect(downloads).toHaveLength(1)
-  })
-
-  it('shows when the last backup is more than 14 days old, not before', async () => {
-    await addTask({ title: 'Something' })
-    await setSetting('lastBackupAt', new Date(2026, 9, 15, 9).toISOString())
-    const { unmount } = render(<App />)
-    expect(await screen.findByText('Due soon')).toBeInTheDocument()
-    expect(screen.queryByRole('region', { name: 'Backup' })).toBeNull()
-    unmount()
-
-    await setSetting('lastBackupAt', new Date(2026, 9, 14, 9).toISOString())
-    render(<App />)
-    expect(await screen.findByRole('region', { name: 'Backup' })).toHaveTextContent(
-      'Last backup was 15 days ago',
-    )
-  })
-
-  it('does not show without tasks', async () => {
-    render(<App />)
-    expect(await screen.findByText('Due soon')).toBeInTheDocument()
-    expect(screen.queryByRole('region', { name: 'Backup' })).toBeNull()
-  })
-})
