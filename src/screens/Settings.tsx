@@ -21,6 +21,12 @@ import { backupAge, daysAhead, importedSummary, needsBackup } from '../lib/copy.
 import { goBack } from '../lib/route.ts'
 import { useExport } from '../lib/useExport.ts'
 import { useNow } from '../lib/useNow.ts'
+import {
+  checkForUpdate,
+  reloadToUpdate,
+  useUpdateStatus,
+  type UpdateStatus,
+} from '../pwa/updates.ts'
 
 const CONFIRM_TITLE_ID = 'import-confirm-title'
 
@@ -48,6 +54,28 @@ const STORAGE_TEXT: Record<StorageStatus, string> = {
   unsupported: 'Not available in this browser',
 }
 
+const UPDATE_TEXT: Record<UpdateStatus, { title: string; detail: string }> = {
+  idle: {
+    title: 'soon updates itself',
+    detail:
+      'It looks for a new version when you open it and shows a Reload banner when one is ready.',
+  },
+  checking: { title: 'Checking for updates…', detail: 'This takes a moment.' },
+  latest: { title: 'You have the latest version', detail: 'Nothing new to install right now.' },
+  ready: {
+    title: 'A new version is ready',
+    detail: 'Reload to start using it. Your tasks stay as they are.',
+  },
+  failed: {
+    title: "Couldn't check for updates",
+    detail: 'Check your internet connection and try again.',
+  },
+  unsupported: {
+    title: "This browser can't check for updates",
+    detail: 'Reload the page to get the newest version.',
+  },
+}
+
 type Message = { kind: 'success' | 'error'; text: string } | null
 
 const exportedOn = new Intl.DateTimeFormat('en-GB', {
@@ -61,6 +89,7 @@ export default function SettingsScreen() {
   const settings = useLiveQuery(getSettings)
   const taskCount = useLiveQuery(async () => (await listTasks()).length)
   const exporter = useExport()
+  const update = useUpdateStatus()
   const [storage, setStorage] = useState<StorageStatus>(() =>
     canCheckStorage() ? 'checking' : 'unsupported',
   )
@@ -275,6 +304,36 @@ export default function SettingsScreen() {
               </span>
               {message.text}
             </p>
+          )}
+        </div>
+      </section>
+
+      <section aria-labelledby="updates-heading" className="mt-8">
+        <h2 id="updates-heading" className="text-section">
+          Updates
+        </h2>
+        <div className={`mt-3 ${card}`}>
+          <div aria-live="polite">
+            <p className="text-[17px] font-bold">{UPDATE_TEXT[update].title}</p>
+            <p className="mt-1 text-[15px] text-text-secondary">{UPDATE_TEXT[update].detail}</p>
+          </div>
+          {update === 'ready' || update === 'unsupported' ? (
+            <Button
+              variant={update === 'ready' ? 'strong' : 'secondary'}
+              onClick={reloadToUpdate}
+              className="mt-4 w-full"
+            >
+              Reload
+            </Button>
+          ) : (
+            <Button
+              variant="secondary"
+              disabled={update === 'checking'}
+              onClick={() => void checkForUpdate()}
+              className="mt-4 w-full"
+            >
+              Check for updates
+            </Button>
           )}
         </div>
       </section>

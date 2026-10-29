@@ -57,6 +57,19 @@ describe('Settings', () => {
     expect(screen.getByText('Version')).toBeInTheDocument()
   })
 
+  it('has an Updates card that checks for a new version', async () => {
+    await openSettings()
+    const card = (await screen.findByRole('heading', { name: 'Updates' })).parentElement!
+    expect(card).toHaveTextContent('soon updates itself')
+
+    // jsdom has no service worker, so the check says it can't and offers a plain reload
+    fireEvent.click(within(card).getByRole('button', { name: 'Check for updates' }))
+    expect(
+      await within(card).findByText("This browser can't check for updates"),
+    ).toBeInTheDocument()
+    expect(within(card).getByRole('button', { name: 'Reload' })).toBeInTheDocument()
+  })
+
   it('steps the due-soon window between 1 and 7 days', async () => {
     await setSetting('dueSoonDays', 2)
     await openSettings()

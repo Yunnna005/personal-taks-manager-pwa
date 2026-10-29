@@ -108,7 +108,7 @@ Sentence case everywhere. No all-caps labels.
 2. **Home, first run**: install hint card (sky colour, iPhone only), dashed empty Due soon, Unsorted tile and a dashed "New folder" tile, add bar reading "Add your first task".
 3. **Folder**: colour header with progress, "With a due date" and "No date" lists in white cards, "Show completed (N)" toggle, add bar.
 4. **Task**: back button and "Saved" indicator, editable display title, date and folder chips, "Mark as done" button, a card with date, time and folder, notes card, steps card with progress and "Add step", created and edited dates, "Delete task".
-5. **Settings**: due-soon stepper ("3 days ahead"), "First page" picker (List / Calendar tiles), theme picker (System / Light / Dark tiles), backup card (amber when old) with Export and Import, a storage status row, and the version.
+5. **Settings**: due-soon stepper ("3 days ahead"), "First page" picker (List / Calendar tiles), theme picker, an Updates card ("Check for updates", which becomes an ink "Reload" when a new version is ready) (System / Light / Dark tiles), backup card (amber when old) with Export and Import, a storage status row, and the version.
 6. **Quick add sheet**: confirmation chip for the last added task, big title input, folder chips, "When" chips plus "Add time", cobalt "Add task" button.
 7. **New / rename folder sheet**: name input, six colour swatches, live tile preview, Cancel and Create folder buttons.
 8. **Folder options sheet**: Rename folder, Change colour, Delete folder (coral tint), Cancel.

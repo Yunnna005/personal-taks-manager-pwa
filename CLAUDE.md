@@ -112,7 +112,10 @@ tests/e2e/
 - **Theme**: `data-theme` on `<html>`, removed for System. Also mirrored to `localStorage` (`soon-theme`) so the inline script in `index.html` applies it before the first paint.
 - **iPhone install hint**: shown once in Safari before installing. Warns that tasks added in a Safari tab don't move to the installed app.
   - Safari on iPhone/iPad only (not Chrome, Firefox or in-app browsers on iOS), never once installed. Shown on Home until dismissed, then `installHintDismissed` keeps it away.
-- **Service worker** (vite-plugin-pwa, `registerType: 'prompt'`): precaches the whole build, fonts included. A waiting update shows the cobalt "A new version of soon is ready / Reload" banner; an open app checks for updates hourly.
+- **Service worker** (vite-plugin-pwa, `registerType: 'prompt'`): precaches the whole build, fonts included. Registered once from `main.tsx` through `src/pwa/updates.ts`, which holds the update state so the banner and Settings share it.
+  - A waiting update shows the cobalt "A new version of soon is ready / Reload" banner.
+  - The app checks for a new version at start-up, hourly while open, and when it comes back to the foreground (at most every 5 minutes), since iPhone apps resume rather than relaunch.
+  - Settings has an Updates card with "Check for updates": it reports "You have the latest version", "A new version is ready" (the button becomes Reload), or "Couldn't check for updates". Without a service worker (old browsers, the dev server) it says it can't check and offers a plain Reload.
 - **Icons**: four stacked bars in the urgency colours on ink. `any` icons have rounded corners; the maskable and Apple icons are full bleed.
 - **Desktop**: on wide screens, when not running as an installed app, show DesktopLanding with the version, a QR code, install steps, and a "Try it in this browser" link. On phones, show the app straight away.
   - "Desktop" means `(min-width: 900px) and (hover: hover) and (pointer: fine)`, so tablets get the app. "Try it in this browser" is remembered in `localStorage`.

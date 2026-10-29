@@ -60,8 +60,8 @@ Write down your iPhone model and iOS version (Settings → General → About): _
 
 ## G. Updates (needs a second deploy, ask for one)
 
-35. After a new version is deployed, open the installed app. Within a minute or two the blue **A new version of soon is ready** banner shows.
-36. Tap **Reload**. The app reloads on the new version (Settings → Version shows the new number).
+35. After a new version is deployed, open the installed app (or switch back to it). Within a minute or two the blue **A new version of soon is ready** banner shows. If it doesn't, go to Settings → Updates → **Check for updates**: it says **A new version is ready**.
+36. Tap **Reload** (on the banner or in Settings). The app reloads on the new version (Settings → Version shows the new number).
 
 ## H. Accessibility (optional, quick)
 
