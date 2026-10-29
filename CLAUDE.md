@@ -1,0 +1,94 @@
+# soon: personal task manager PWA
+
+## What this is
+A local-first task manager that installs from the browser on iPhone and Android.
+No backend, no accounts, no analytics. All task data lives in IndexedDB on the
+user's device and only leaves it when the user exports a backup. The built app is
+static files, hosted later on Cloudflare (Workers static assets).
+
+Design spec: `DESIGN.md`. Read it before building or changing any UI.
+
+## Stack
+- React + TypeScript + Vite
+- Tailwind CSS, with the design tokens from `DESIGN.md`
+- Dexie + dexie-react-hooks for IndexedDB. Use `useLiveQuery` instead of a state library
+- vite-plugin-pwa (Workbox), `registerType: 'prompt'`
+- Vitest + fake-indexeddb for unit tests, Playwright for end-to-end tests (Chromium, WebKit, mobile viewports)
+- Font: Bricolage Grotesque, self-hosted from an npm package. No Google Fonts at runtime
+- No router, state library or UI kit unless we agree to add one
+
+## Commands
+Fill these in after scaffolding: dev, build, preview, test, test:e2e, lint, typecheck.
+
+## Structure
+```
+src/
+  db/          schema.ts, tasks.ts, folders.ts, settings.ts, backup.ts  (the only code that touches Dexie)
+  lib/         dates.ts (urgency and due-soon logic), ids.ts
+  screens/     Home, Folder, Task, Settings, DesktopLanding
+  components/  DueCard, FolderTile, AddBar, Sheet, Toast, ProgressBar, ...
+  pwa/         service worker registration, install hint, storage persistence
+tests/e2e/
+```
+
+## Data model
+- **Folder**: `id` (uuid), `name`, `color` (one of the folder colour names), `createdAt`, `updatedAt`
+- **Task**: `id` (uuid), `title`, `notes`, `folderId` (null = Unsorted), `dueDate` ("YYYY-MM-DD" or null), `dueTime` ("HH:mm" or null, only allowed with a dueDate), `steps` (`{id, title, done}[]`), `completedAt` (ISO string or null), `createdAt`, `updatedAt`
+- **Settings** (key/value): `dueSoonDays` (1–7, default 3), `theme` (system | light | dark), `lastBackupAt`, `installHintDismissed`
+- Store dates as local date and time strings, not timestamps, so "due today" never shifts with time zones.
+- Keep `createdAt`/`updatedAt` on everything so sync could be added later.
+
+## Agreed behaviour
+- **Home**: date header, then "Due soon", then folders.
+  - Due soon = overdue tasks plus tasks due within `dueSoonDays`.
+  - Sort overdue first, then by date. On the same day, timed tasks come first in time order, then untimed ones.
+  - Show up to 5, with a "See all N" button that expands the list in place.
+- **Urgency colours**: late = coral, today = amber, tomorrow = yellow, later = lilac.
+  - A task with a time is overdue once the time passes. One without a time is overdue from the next day.
+- **Folders**: one level, no nesting. Each folder has a colour.
+  - "Unsorted" is the built-in default folder and acts as the inbox. It can't be renamed or deleted.
+  - Progress = done / total. At 100%, show an "All done" tick.
+  - Deleting a folder moves its tasks to Unsorted.
+- **Completed tasks**: hidden from lists. Each folder has a "Show completed (N)" toggle.
+- **Undo**: completing or deleting a task shows a toast with Undo, for about 5 seconds.
+- **Task page**: title, date, optional time, folder, notes, steps checklist with progress, created and last edited dates, delete. Changes save as you type.
+- **Quick add**: opens from the bottom add bar. Pick the folder and date with chips, time is optional. The sheet stays open after adding, so several tasks can be added in a row. Inside a folder, new tasks go to that folder.
+- **No reminders or notifications in v1.** The time is display only.
+- **Backup**:
+  - Export writes a versioned JSON file.
+  - Import validates everything first, then replaces all data in one transaction, or changes nothing.
+  - Home shows a nudge when the last backup is more than 14 days old (or there's never been one) and tasks exist.
+- **Storage**: call `navigator.storage.persist()` on start-up. Settings shows whether storage is protected.
+- **iPhone install hint**: shown once in Safari before installing. Warns that tasks added in a Safari tab don't move to the installed app.
+- **Desktop**: on wide screens, when not running as an installed app, show DesktopLanding with the version, a QR code, install steps, and a "Try it in this browser" link. On phones, show the app straight away.
+- **Version** comes from `package.json` at build time.
+
+## How to work
+- One milestone at a time, in small testable steps. Stop and summarise when a milestone is done.
+- Read the existing code before changing it. Don't refactor unrelated code.
+- Components never call Dexie directly. Go through `src/db`.
+- Keep urgency and date logic in `src/lib/dates.ts`, fully unit-tested, including edge cases around midnight.
+- Ask before adding any dependency, and say why it's needed.
+- Ask before anything that costs money or creates external resources (accounts, deploys, domains).
+- After each change run typecheck, lint and unit tests. Run e2e tests when a user flow changes. Report the real results.
+- Don't claim offline or iOS behaviour works unless it has been checked.
+- Accessibility:
+  - Use real buttons and links, and label every input.
+  - Touch targets at least 44px, visible focus, 4.5:1 text contrast.
+  - Respect `prefers-reduced-motion`.
+- Never send task data anywhere. No analytics, no third-party scripts at runtime.
+- Never put secrets in the project. Keep `.env*` in `.gitignore` in case Git is added later.
+- Git is not installed on this Mac, and the Xcode command line tools are deliberately not installed. Don't run git commands or try to install Git, Homebrew or the command line tools. Only use npm packages that ship prebuilt binaries and don't need compiling.
+- Deploy later with `npx wrangler` (direct upload to Cloudflare, no Git needed).
+
+## Milestones
+0. Scaffold: Vite + React + TS, Tailwind with tokens, font, ESLint/Prettier, Vitest, Playwright, folder structure
+1. Data layer: Dexie schema, db functions, date/urgency logic, unit tests
+2. Home screen: Due soon cards, folder tiles, add bar, using real data
+3. Quick add sheet
+4. Folder screen, plus create, rename, recolour and delete folders
+5. Task page: steps, date, time, notes
+6. Complete, undo and delete toasts, and "Show completed"
+7. Settings: due-soon days, theme, export and import with validation, backup nudge
+8. PWA: manifest, icons, service worker, update prompt, storage persistence, iPhone install hint, DesktopLanding
+9. Real-device testing on iPhone, then deploy to Cloudflare
