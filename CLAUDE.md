@@ -39,7 +39,7 @@ Pinned TypeScript to ~6.0 because typescript-eslint doesn't support 7 yet.
 src/
   db/          schema.ts, tasks.ts, folders.ts, settings.ts, backup.ts  (the only code that touches Dexie)
   lib/         dates.ts (urgency and due-soon logic), ids.ts
-  screens/     Home, Folder, Task, Settings, DesktopLanding
+  screens/     Home, Calendar, Folder, Task, Settings, DesktopLanding
   components/  DueCard, FolderTile, AddBar, Sheet, Toast, ProgressBar, ...
   pwa/         service worker registration, install hint, storage persistence
 tests/e2e/
@@ -48,7 +48,7 @@ tests/e2e/
 ## Data model
 - **Folder**: `id` (uuid), `name`, `color` (one of the folder colour names), `createdAt`, `updatedAt`
 - **Task**: `id` (uuid), `title`, `notes`, `folderId` (null = Unsorted), `dueDate` ("YYYY-MM-DD" or null), `dueTime` ("HH:mm" or null, only allowed with a dueDate), `steps` (`{id, title, done}[]`), `completedAt` (ISO string or null), `createdAt`, `updatedAt`
-- **Settings** (key/value): `dueSoonDays` (1–7, default 3), `theme` (system | light | dark), `lastBackupAt`, `installHintDismissed`
+- **Settings** (key/value): `dueSoonDays` (1–7, default 3), `theme` (system | light | dark), `startView` (list | calendar, default list), `lastBackupAt`, `installHintDismissed`
 - Store dates as local date and time strings, not timestamps, so "due today" never shifts with time zones.
 - Keep `createdAt`/`updatedAt` on everything so sync could be added later.
 
@@ -60,6 +60,16 @@ tests/e2e/
   - The summary line is hidden when nothing is due; the empty Due soon card says "Nothing due in the next N days."
   - The dashed "New folder" tile always ends the folder grid, not only on first run.
   - The add bar reads "Add your first task" until any task exists (completed ones count).
+- **Calendar** (v2): Home's second view, a week grid like a desk calendar, at `#/calendar` (this week) or `#/calendar/<YYYY-MM-DD>` (the week of that date). (An agenda list was tried first and rejected by the owner: it looked like the task list.)
+  - Header: wordmark, a List / Calendar switch (two 44px icon buttons in a white pill, the active one ink), Settings. The switch replaces the route instead of pushing it, so the back gesture doesn't flip between views. The list view has the same header.
+  - Settings has "First page: List / Calendar" (`startView`). `#/` waits for settings to load before showing that view, so the other one never flashes.
+  - Title is the week ("26 Oct – 1 Nov", with years when the week isn't all in this year), with previous and next week buttons, then "This week" or a "Back to this week" button. Weeks start on Monday. Changing week replaces the route, so Back from a task returns to the same week.
+  - The grid scrolls both ways inside the screen: day columns (weekday, day, month) stay on top, the hours column stays on the left. Day columns are at least 116px, so about three fit on a phone and the rest scroll in from the right; on wider screens the week fills the width. A new week opens scrolled to today's column, at the top.
+  - Below the day headers is an "Any time" row: untimed tasks as folder-coloured entries, then a dashed + to add a task on that day. Under it, hour rows from 07:00 (earlier if a task that week is earlier) to midnight, 56px each.
+  - Timed tasks are 46px folder-coloured entries at their time, showing the time and title. Tasks have no length, so an entry that would overlap the one before is pushed down below it (`src/lib/weekGrid.ts`). Overdue tasks carry a coral "Late" / "Late · 09:00" pill. Today's header is amber and a coral line marks the current time.
+  - Tapping an entry opens the task. Tapping an empty hour opens Quick add with that day and hour; keyboard and screen reader users add with the + under Any time instead. Tapping a day header opens a sheet listing that day's tasks with ticks and an "Add task" button. Ticking there closes the sheet first, because the Undo toast sits under open sheets.
+  - Open tasks only; completed and undated tasks aren't shown.
+  - The iPhone install hint shows here too, so it isn't missed when the calendar is the first page.
 - **Urgency colours**: late = coral, today = amber, tomorrow = yellow, later = lilac.
   - A task with a time is overdue once the time passes (due 17:00 is late from 17:01). One without a time is overdue from the next day.
   - Urgency tab labels (big / small):
@@ -73,7 +83,7 @@ tests/e2e/
   - New folders default to the first colour not yet used by another folder.
   - Folder screen lists open tasks only: "With a due date" in due order, then "No date" oldest first. Ties go by creation time, then title.
   - Deleting needs confirmation; "Keep folder" gets focus. Completed tasks in the folder move to Unsorted too.
-- **Navigation**: hash routes, no router library (`src/lib/route.ts`): `#/`, `#/folder/unsorted`, `#/folder/<id>`, `#/task/<id>`, `#/settings`, `#/completed`. Screens open as history entries, so the phone's back gesture works. The Back button goes Home when the app was opened straight onto a folder.
+- **Navigation**: hash routes, no router library (`src/lib/route.ts`): `#/` (Home in the `startView` view), `#/list`, `#/calendar`, `#/folder/unsorted`, `#/folder/<id>`, `#/task/<id>`, `#/settings`, `#/completed`. Screens open as history entries, so the phone's back gesture works. The Back button goes Home when the app was opened straight onto a folder.
 - **Completed folder**: a "Completed" row under Unsorted on Home, only while any task is completed. It opens `#/completed`: completed tasks from every folder, newest first, each with its folder. Tapping a tick reopens the task. "Delete all" asks first ("Keep them" focused), deletes them all in one transaction, goes back, and shows an Undo toast for the whole batch; the row then hides until something is completed again.
 - **Completed tasks**: hidden from lists. Each folder has a "Show completed (N)" toggle. It only appears when N > 0, and resets when you leave the folder. The Completed list is newest first; tapping a filled tick reopens the task (no toast).
 - **Undo**: completing or deleting a task shows a toast with Undo, for about 5 seconds. One toast at a time; a new one replaces the old. It pauses while pointed at or focused, so keyboard and screen reader users can reach Undo. Toasts live outside the screens (`src/lib/toast.ts`), so deleting on the Task page shows its toast on the screen you go back to. Screens complete and delete through `src/lib/taskActions.ts`, not the db functions directly. If the task's folder was deleted before Undo, the task comes back in Unsorted.
@@ -94,7 +104,7 @@ tests/e2e/
   - Export writes a versioned JSON file.
   - Import validates everything first, then replaces all data in one transaction, or changes nothing.
   - No backup nudge on Home (removed at the owner's request, 2026-10-29). Settings' backup card turns amber when the last backup is more than 14 days old (or there's never been one) and tasks exist.
-  - The file holds folders, tasks, `dueSoonDays` and `theme`. `lastBackupAt` and `installHintDismissed` stay per device and are never replaced by an import.
+  - The file holds folders, tasks, `dueSoonDays`, `theme` and `startView`. It's still file version 1: older files without `startView` import as `list`, and 1.x apps drop the unknown field. `lastBackupAt` and `installHintDismissed` stay per device and are never replaced by an import.
   - Unknown fields are dropped. Anything missing or malformed rejects the whole file with a reason ("That backup is damaged: Task 3 has a bad due date. Nothing on this phone was changed."). A newer file version asks you to update the app.
   - Import always asks first ("Replace everything?", Cancel focused), since it replaces everything.
   - Export uses the share sheet where it can share files (phones), otherwise a download. `lastBackupAt` is only set when the save wasn't cancelled.
@@ -141,3 +151,6 @@ tests/e2e/
 7. Settings: due-soon days, theme, export and import with validation, backup nudge
 8. PWA: manifest, icons, service worker, update prompt, storage persistence, iPhone install hint, DesktopLanding
 9. Real-device testing on iPhone, then deploy to Cloudflare
+
+### Version 2
+10. Calendar view, and a setting for which view the app opens on

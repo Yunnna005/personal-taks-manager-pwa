@@ -2,10 +2,18 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import Button from '../components/Button.tsx'
-import { AlertIcon, BackIcon, CheckIcon, MinusIcon, PlusIcon } from '../components/icons.tsx'
+import {
+  AlertIcon,
+  BackIcon,
+  CalendarIcon,
+  CheckIcon,
+  ListIcon,
+  MinusIcon,
+  PlusIcon,
+} from '../components/icons.tsx'
 import Sheet from '../components/Sheet.tsx'
 import type { BackupFile } from '../db/backup.ts'
-import type { Theme } from '../db/schema.ts'
+import type { StartView, Theme } from '../db/schema.ts'
 import { getSettings, MAX_DUE_SOON_DAYS, MIN_DUE_SOON_DAYS, setSetting } from '../db/settings.ts'
 import { listTasks } from '../db/tasks.ts'
 import { readBackupFile, restoreBackup } from '../lib/backupActions.ts'
@@ -21,6 +29,11 @@ const THEMES: { value: Theme; label: string; halves: string[] }[] = [
   { value: 'system', label: 'System', halves: ['bg-mist', 'bg-ground'] },
   { value: 'light', label: 'Light', halves: ['bg-mist'] },
   { value: 'dark', label: 'Dark', halves: ['bg-ground'] },
+]
+
+const START_VIEWS: { value: StartView; label: string; Icon: typeof ListIcon }[] = [
+  { value: 'list', label: 'List', Icon: ListIcon },
+  { value: 'calendar', label: 'Calendar', Icon: CalendarIcon },
 ]
 
 type StorageStatus = 'checking' | 'protected' | 'unprotected' | 'unsupported'
@@ -93,6 +106,7 @@ export default function SettingsScreen() {
 
   const card = 'rounded-card bg-surface p-4'
   const round = 'grid size-11 place-items-center rounded-full bg-bg disabled:opacity-40'
+  const radioCard = `flex cursor-pointer flex-col gap-2 p-3 ${card} has-checked:ring-[3px] has-checked:ring-ink has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-link dark:has-checked:ring-text-dark`
 
   return (
     <main className="mx-auto max-w-xl px-5 pt-[max(24px,env(safe-area-inset-top))] pb-16">
@@ -140,13 +154,43 @@ export default function SettingsScreen() {
 
       <section className="mt-8">
         <fieldset>
+          <legend className="text-section">First page</legend>
+          <p className="mt-1 text-[15px] text-text-secondary">
+            What soon opens on. You can switch at the top of the page any time.
+          </p>
+          <div className="mt-3 grid grid-cols-2 gap-2.5">
+            {START_VIEWS.map(({ value, label, Icon }) => (
+              <label key={value} className={radioCard}>
+                <input
+                  type="radio"
+                  name="start-view"
+                  value={value}
+                  checked={settings.startView === value}
+                  onChange={() => void setSetting('startView', value)}
+                  className="sr-only"
+                />
+                <span
+                  aria-hidden="true"
+                  className="grid h-14 place-items-center rounded-[12px] bg-bg"
+                >
+                  <Icon className="size-7" />
+                </span>
+                <span className="flex items-center justify-between text-[15px] font-bold">
+                  {label}
+                  {settings.startView === value && <CheckIcon className="size-4" />}
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      </section>
+
+      <section className="mt-8">
+        <fieldset>
           <legend className="text-section">Theme</legend>
           <div className="mt-3 grid grid-cols-3 gap-2.5">
             {THEMES.map((t) => (
-              <label
-                key={t.value}
-                className={`flex cursor-pointer flex-col gap-2 p-3 ${card} has-checked:ring-[3px] has-checked:ring-ink has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-link dark:has-checked:ring-text-dark`}
-              >
+              <label key={t.value} className={radioCard}>
                 <input
                   type="radio"
                   name="theme"

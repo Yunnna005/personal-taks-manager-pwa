@@ -1,4 +1,4 @@
-import { db, DEFAULT_SETTINGS, type Theme } from './schema.ts'
+import { db, DEFAULT_SETTINGS, type StartView, type Theme } from './schema.ts'
 import { getSettings, setSetting } from './settings.ts'
 
 beforeEach(async () => {
@@ -10,6 +10,7 @@ describe('settings', () => {
     expect(await getSettings()).toEqual({
       dueSoonDays: 3,
       theme: 'system',
+      startView: 'list',
       lastBackupAt: null,
       installHintDismissed: false,
     })
@@ -18,12 +19,14 @@ describe('settings', () => {
   it('saves and reads back each setting', async () => {
     await setSetting('dueSoonDays', 7)
     await setSetting('theme', 'dark')
+    await setSetting('startView', 'calendar')
     await setSetting('lastBackupAt', '2026-10-15T08:00:00.000Z')
     await setSetting('installHintDismissed', true)
 
     expect(await getSettings()).toEqual({
       dueSoonDays: 7,
       theme: 'dark',
+      startView: 'calendar',
       lastBackupAt: '2026-10-15T08:00:00.000Z',
       installHintDismissed: true,
     })
@@ -36,6 +39,7 @@ describe('settings', () => {
 
   it('rejects unknown themes and bad backup dates', async () => {
     await expect(setSetting('theme', 'blue' as Theme)).rejects.toThrow('Unknown theme')
+    await expect(setSetting('startView', 'grid' as StartView)).rejects.toThrow('Unknown start view')
     await expect(setSetting('lastBackupAt', 'yesterday')).rejects.toThrow('lastBackupAt')
     expect(await getSettings()).toEqual(DEFAULT_SETTINGS)
   })

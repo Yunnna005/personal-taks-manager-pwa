@@ -2,8 +2,16 @@
 // the whole file first, then replacing all data in one transaction.
 import { isValidDate, isValidTime } from '../lib/dates.ts'
 import { MAX_FOLDER_NAME } from './folders.ts'
-import { db, FOLDER_COLORS, type Folder, type Step, type Task, type Theme } from './schema.ts'
-import { getSettings } from './settings.ts'
+import {
+  db,
+  FOLDER_COLORS,
+  type Folder,
+  type StartView,
+  type Step,
+  type Task,
+  type Theme,
+} from './schema.ts'
+import { getSettings, START_VIEWS } from './settings.ts'
 
 export const BACKUP_VERSION = 1
 /** Far beyond any real task list; stops a wrong file from freezing the phone. */
@@ -16,7 +24,7 @@ export type BackupFile = {
   folders: Folder[]
   tasks: Task[]
   /** Preferences that travel with the data. Backup dates and hints stay per device. */
-  settings: { dueSoonDays: number; theme: Theme }
+  settings: { dueSoonDays: number; theme: Theme; startView: StartView }
 }
 
 export type ParseResult = { ok: true; backup: BackupFile } | { ok: false; error: string }
@@ -37,7 +45,11 @@ export async function createBackup(now: Date): Promise<BackupFile> {
       exportedAt: now.toISOString(),
       folders,
       tasks,
-      settings: { dueSoonDays: settings.dueSoonDays, theme: settings.theme },
+      settings: {
+        dueSoonDays: settings.dueSoonDays,
+        theme: settings.theme,
+        startView: settings.startView,
+      },
     }
   })
 }
@@ -180,6 +192,8 @@ export function parseBackup(text: string): ParseResult {
           ? (days as number)
           : 3,
       theme: (['system', 'light', 'dark'] as const).find((t) => t === s.theme) ?? 'system',
+      // Files from 1.x have no startView
+      startView: START_VIEWS.find((v) => v === s.startView) ?? 'list',
     }
 
     return {
@@ -209,6 +223,7 @@ export async function importBackup(backup: BackupFile): Promise<void> {
     await db.settings.bulkPut([
       { key: 'dueSoonDays', value: backup.settings.dueSoonDays },
       { key: 'theme', value: backup.settings.theme },
+      { key: 'startView', value: backup.settings.startView },
     ])
   })
 }

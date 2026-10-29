@@ -1,7 +1,10 @@
 import { useMemo, useSyncExternalStore } from 'react'
 
 // Hash routes, so static hosting needs no fallback and reloads keep the screen:
-//   #/                   Home
+//   #/                   Home, in the view chosen in Settings (startView)
+//   #/list               Home as the Due soon list
+//   #/calendar           Home as the week calendar, on this week
+//   #/calendar/<date>    the week calendar on the week of <date> (YYYY-MM-DD)
 //   #/folder/unsorted    Unsorted
 //   #/folder/<id>        a folder
 //   #/task/<id>          a task
@@ -10,6 +13,8 @@ import { useMemo, useSyncExternalStore } from 'react'
 
 export type Route =
   | { name: 'home' }
+  | { name: 'list' }
+  | { name: 'calendar'; week?: string }
   | { name: 'folder'; folderId: string | null }
   | { name: 'task'; taskId: string }
   | { name: 'settings' }
@@ -18,6 +23,10 @@ export type Route =
 export const HOME: Route = { name: 'home' }
 
 export function parseHash(hash: string): Route {
+  if (hash === '#/list') return { name: 'list' }
+  if (hash === '#/calendar') return { name: 'calendar' }
+  const week = /^#\/calendar\/(\d{4}-\d{2}-\d{2})$/.exec(hash)
+  if (week) return { name: 'calendar', week: week[1]! }
   if (hash === '#/settings') return { name: 'settings' }
   if (hash === '#/completed') return { name: 'completed' }
   const m = /^#\/(folder|task)\/([^/]+)$/.exec(hash)
@@ -29,6 +38,8 @@ export function parseHash(hash: string): Route {
 
 export function toHash(route: Route): string {
   if (route.name === 'home') return '#/'
+  if (route.name === 'list') return '#/list'
+  if (route.name === 'calendar') return route.week ? `#/calendar/${route.week}` : '#/calendar'
   if (route.name === 'settings') return '#/settings'
   if (route.name === 'completed') return '#/completed'
   if (route.name === 'task') return `#/task/${encodeURIComponent(route.taskId)}`

@@ -32,6 +32,7 @@ async function sample() {
   await completeTask(done.id)
   await setSetting('dueSoonDays', 5)
   await setSetting('theme', 'dark')
+  await setSetting('startView', 'calendar')
   await setSetting('lastBackupAt', '2026-10-01T08:00:00.000Z')
 }
 
@@ -62,7 +63,7 @@ const valid = (): BackupFile => ({
       updatedAt: '2026-10-01T08:00:00.000Z',
     },
   ],
-  settings: { dueSoonDays: 3, theme: 'system' },
+  settings: { dueSoonDays: 3, theme: 'system', startView: 'list' },
 })
 
 const parse = (data: unknown) => parseBackup(JSON.stringify(data))
@@ -74,7 +75,7 @@ describe('createBackup / importBackup', () => {
     const tasks = await listTasks()
     const backup = await createBackup(NOW)
     expect(backup).toMatchObject({ app: 'soon', version: BACKUP_VERSION })
-    expect(backup.settings).toEqual({ dueSoonDays: 5, theme: 'dark' })
+    expect(backup.settings).toEqual({ dueSoonDays: 5, theme: 'dark', startView: 'calendar' })
 
     await Promise.all(db.tables.map((t) => t.clear()))
     const parsed = parseBackup(JSON.stringify(backup))
@@ -84,7 +85,11 @@ describe('createBackup / importBackup', () => {
 
     expect(await listFolders()).toEqual(folders)
     expect(new Set(await listTasks())).toEqual(new Set(tasks))
-    expect(await getSettings()).toMatchObject({ dueSoonDays: 5, theme: 'dark' })
+    expect(await getSettings()).toMatchObject({
+      dueSoonDays: 5,
+      theme: 'dark',
+      startView: 'calendar',
+    })
   })
 
   it('replaces everything that was there and keeps device-only settings', async () => {
@@ -183,9 +188,19 @@ describe('parseBackup', () => {
   })
 
   it('falls back to default settings when they are missing or odd', () => {
-    const data = { ...valid(), settings: { dueSoonDays: 99, theme: 'neon' } }
+    const data = { ...valid(), settings: { dueSoonDays: 99, theme: 'neon', startView: 'grid' } }
     const result = parse(data)
-    expect(result.ok && result.backup.settings).toEqual({ dueSoonDays: 3, theme: 'system' })
+    expect(result.ok && result.backup.settings).toEqual({
+      dueSoonDays: 3,
+      theme: 'system',
+      startView: 'list',
+    })
+  })
+
+  it('reads a 1.x file, which has no startView, as the list view', () => {
+    const data = { ...valid(), settings: { dueSoonDays: 4, theme: 'dark' } }
+    const result = parse(data)
+    expect(result.ok && result.backup.settings.startView).toBe('list')
   })
 })
 

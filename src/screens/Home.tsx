@@ -6,7 +6,7 @@ import DueCard from '../components/DueCard.tsx'
 import { dotBg, nextColor, UNSORTED_DOT } from '../components/folderColors.ts'
 import { FOLDER_EDITOR_TITLE_ID, FolderEditor } from '../components/FolderSheets.tsx'
 import { CompletedRow, FolderTile, NewFolderTile, UnsortedRow } from '../components/FolderTile.tsx'
-import { SettingsIcon } from '../components/icons.tsx'
+import HomeHeader from '../components/HomeHeader.tsx'
 import QuickAdd, { QUICK_ADD_TITLE_ID } from '../components/QuickAdd.tsx'
 import Sheet from '../components/Sheet.tsx'
 import { listFolders } from '../db/folders.ts'
@@ -53,17 +53,7 @@ export default function Home() {
   return (
     <>
       <main className="mx-auto min-h-dvh max-w-xl px-5 pt-[max(24px,env(safe-area-inset-top))] pb-32">
-        <header className="flex h-11 items-center justify-between">
-          <p className="text-section">soon</p>
-          <button
-            type="button"
-            aria-label="Settings"
-            onClick={() => navigate({ name: 'settings' })}
-            className="grid size-11 place-items-center rounded-full bg-surface"
-          >
-            <SettingsIcon className="size-6" />
-          </button>
-        </header>
+        <HomeHeader view="list" />
 
         <h1 className="mt-6 text-display">{dateFormat.format(now).replace(',', '')}</h1>
         {loaded && summary && <p className="mt-3 text-[17px] text-text-secondary">{summary}</p>}

@@ -11,18 +11,21 @@ export default function TaskRow({
   onOpen,
   onToggle,
   folder,
+  due: dueOverride,
 }: {
   task: Task
   now: Date
   urgency: Urgency | null
   /** Which folder the task is in, for lists that mix folders. */
   folder?: { name: string; dot: string }
+  /** Replaces the due pill text; calendar days show only the time (null hides it). */
+  due?: string | null
   onOpen: () => void
   /** Completes an open task, or reopens a completed one. */
   onToggle: () => void
 }) {
   const done = task.completedAt !== null
-  const due = done ? null : dueText(task, now)
+  const due = done ? null : dueOverride !== undefined ? dueOverride : dueText(task, now)
   const stepsDone = task.steps.filter((s) => s.done).length
 
   return (
