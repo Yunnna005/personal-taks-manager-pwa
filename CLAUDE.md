@@ -109,7 +109,7 @@ tests/e2e/
   - e2e desktop projects start with that choice made (`tests/e2e/state.ts`); landing tests clear it.
 - **Version** comes from `package.json` at build time.
 - **Hosting headers** (`public/_headers`): `/`, `index.html`, `sw.js`, `manifest.webmanifest` and `theme-init.js` are `no-cache` so updates reach installed apps; `/assets/*` is immutable. A strict CSP allows only this site (`script-src 'self'`, so no inline scripts; `style-src` keeps `'unsafe-inline'` for React style attributes).
-- **Device testing**: `docs/iphone-testing.md` is the checklist for a real iPhone.
+- **Device testing**: `docs/iphone-testing.md` is the checklist for a real iPhone. Version 1.0.0 passed it on a real iPhone on 2026-10-29 (reported by the owner), except steps 35–36 (update banner), which need a second deploy. Re-run it after changes to sheets, pickers, the service worker or backup.
 
 ## How to work
 - One milestone at a time, in small testable steps. Stop and summarise when a milestone is done.
