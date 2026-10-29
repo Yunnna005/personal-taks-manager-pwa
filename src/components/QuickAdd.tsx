@@ -3,21 +3,15 @@ import { useRef, useState, type FormEvent } from 'react'
 import { flushSync } from 'react-dom'
 import { listFolders } from '../db/folders.ts'
 import { addTask } from '../db/tasks.ts'
-import {
-  addDays,
-  daysBetween,
-  isValidDate,
-  shortDate,
-  toDateString,
-  weekdayAndDay,
-} from '../lib/dates.ts'
+import { addDays, daysBetween, isValidDate, shortDate, toDateString } from '../lib/dates.ts'
 import { useNow } from '../lib/useNow.ts'
 import Chip from './Chip.tsx'
+import { chipClass } from './chipClass.ts'
 import { dotBg, UNSORTED_DOT } from './folderColors.ts'
 import { CheckIcon, CloseIcon } from './icons.tsx'
 
-/** Days from today shown as chips: Today, Tomorrow, then the next five weekdays. */
-const DAY_CHIPS = [0, 1, 2, 3, 4, 5, 6]
+/** Days from today shown as chips: Today and Tomorrow. Other days come from "Pick date". */
+const DAY_CHIPS = [0, 1]
 
 /** null = no date, a number = days from today, a string = a date picked from the calendar. */
 type When = number | string | null
@@ -42,7 +36,6 @@ export default function QuickAdd({
   const [error, setError] = useState<string | null>(null)
   const titleRef = useRef<HTMLInputElement>(null)
   const timeRef = useRef<HTMLInputElement>(null)
-  const dateRef = useRef<HTMLInputElement>(null)
 
   // Day chips are stored as offsets so "Today" stays today if the sheet is open over midnight
   const dueDate = when === null ? null : typeof when === 'number' ? addDays(today, when) : when
@@ -153,25 +146,24 @@ export default function QuickAdd({
         </Chip>
         {DAY_CHIPS.map((n) => (
           <Chip key={n} tone="butter" selected={when === n} onClick={() => setWhen(n)}>
-            {n === 0 ? 'Today' : n === 1 ? 'Tomorrow' : weekdayAndDay(addDays(today, n))}
+            {n === 0 ? 'Today' : 'Tomorrow'}
           </Chip>
         ))}
-        <Chip
-          tone="butter"
-          selected={typeof when === 'string'}
-          onClick={() => openPicker(dateRef.current)}
+        {/* A real date input laid over the chip, so the tap itself opens the calendar.
+            iOS won't open a picker for a hidden input from showPicker(). */}
+        <label
+          className={`relative ${chipClass({ tone: 'butter', selected: typeof when === 'string' })}`}
         >
-          {typeof when === 'string' ? shortDate(when) : 'Other date'}
-        </Chip>
-        <input
-          ref={dateRef}
-          type="date"
-          aria-label="Pick a date"
-          tabIndex={-1}
-          value={typeof when === 'string' ? when : ''}
-          onChange={(e) => pickDate(e.target.value)}
-          className="sr-only"
-        />
+          <span aria-hidden="true">{typeof when === 'string' ? shortDate(when) : 'Pick date'}</span>
+          <input
+            type="date"
+            aria-label="Pick date"
+            value={typeof when === 'string' ? when : ''}
+            onClick={(e) => openPicker(e.currentTarget)}
+            onChange={(e) => pickDate(e.target.value)}
+            className="absolute inset-0 size-full cursor-pointer appearance-none opacity-0"
+          />
+        </label>
       </div>
 
       {dueDate && (

@@ -27,7 +27,7 @@ Write down your iPhone model and iOS version (Settings → General → About): _
 11. Tap **Add your first task**. The sheet slides up and **the keyboard comes up by itself**.
 12. Add three tasks in a row without closing the sheet. Each shows the green "… added" chip.
 13. Pick **Tomorrow**, then **Add time**: the iOS time wheel opens. Set a time, add the task.
-14. Tap **Other date**: the iOS date picker opens. Pick a date next week, add a task.
+14. Tap **Pick date**: the iOS date picker opens. Pick a date next week, add a task.
 15. While the sheet is open, the page behind doesn't scroll. Swipe or tap the dimmed area to close.
 16. Create a folder from **New folder**. The keyboard comes up for the name. Pick a colour.
 17. Open the folder. Its add bar says "Add to …" and new tasks go into it.

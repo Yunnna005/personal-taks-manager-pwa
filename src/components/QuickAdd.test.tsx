@@ -65,26 +65,32 @@ describe('QuickAdd', () => {
 
   it('labels the day chips and saves the chosen day', async () => {
     render(<QuickAdd onClose={() => {}} />)
-    for (const name of ['No date', 'Today', 'Tomorrow', 'Sat 31', 'Sun 1', 'Wed 4', 'Other date']) {
+    for (const name of ['No date', 'Today', 'Tomorrow']) {
       expect(chip(name)).toBeInTheDocument()
     }
+    expect(screen.getByLabelText('Pick date')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Sat 31' })).not.toBeInTheDocument()
 
-    fireEvent.click(chip('Sun 1'))
+    fireEvent.click(chip('Today'))
     type('Call mum')
     await addAndWait(1)
-    expect((await listTasks())[0]?.dueDate).toBe('2026-11-01')
+    expect((await listTasks())[0]?.dueDate).toBe('2026-10-29')
   })
 
   it('accepts a date from the calendar, matching a chip when it is one', async () => {
     render(<QuickAdd onClose={() => {}} />)
-    const picker = screen.getByLabelText('Pick a date')
+    const picker = screen.getByLabelText('Pick date')
 
     fireEvent.change(picker, { target: { value: '2026-11-09' } })
-    expect(chip('Mon 9 Nov')).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByText('Mon 9 Nov')).toBeInTheDocument()
+    expect(chip('No date')).toHaveAttribute('aria-pressed', 'false')
+    type('Dentist')
+    await addAndWait(1)
+    expect((await listTasks())[0]?.dueDate).toBe('2026-11-09')
 
     fireEvent.change(picker, { target: { value: '2026-10-30' } })
     expect(chip('Tomorrow')).toHaveAttribute('aria-pressed', 'true')
-    expect(chip('Other date')).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByText('Pick date')).toBeInTheDocument()
   })
 
   it('only offers a time once there is a date, and saves it', async () => {
