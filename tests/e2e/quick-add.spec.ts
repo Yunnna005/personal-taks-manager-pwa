@@ -69,3 +69,24 @@ test('sheet controls are at least 44px', async ({ page }) => {
     expect(Math.min(box!.width, box!.height)).toBeGreaterThanOrEqual(44)
   }
 })
+
+test('a tap on "Pick date" lands on the date input, and the picked date is saved', async ({
+  page,
+}) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Add your first task' }).click()
+  const sheet = page.getByRole('dialog', { name: 'Add a task' })
+  const picker = sheet.getByLabel('Pick date')
+
+  // iOS only opens its calendar when the tap hits the input itself. A trial click
+  // fails if anything else would receive the tap.
+  const box = (await picker.boundingBox())!
+  expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(44)
+  await picker.click({ trial: true })
+
+  await picker.fill('2026-11-09')
+  await expect(sheet.getByText('Mon 9 Nov')).toBeVisible()
+  await sheet.getByRole('textbox', { name: 'Task title' }).fill('Dentist')
+  await sheet.getByRole('button', { name: 'Add task' }).click()
+  await expect(sheet.getByRole('status')).toHaveText('Dentist added')
+})
